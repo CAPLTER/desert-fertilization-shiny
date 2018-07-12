@@ -1,6 +1,18 @@
 
 # README ------------------------------------------------------------------
 
+# Function to format resin-related Lachat data. Inputs include the Lachat data
+# (R object) and name of file from which the Lachat data were derived. As much
+# as possible, the Sample ID field (basically the identify of the collection
+# site (e.g., LDP) and type (e.g., IP)) is standardized based on observed
+# patterns to facilitate a match between the collector id entered as metadata
+# (ideally the Lachat Sample ID for the unknown samples is from bar code so
+# always the same (but, yeah, right)). The purpose of the formatting is to
+# standardize the Lachat for upload and to facilitate marrying the relevant
+# metadata (site, collection date, notes, etc.) either by manually entering
+# those details or merging them with metadata entered into an Excel file (see
+# import_metadata.R).
+
 
 # libraries ---------------------------------------------------------------
 

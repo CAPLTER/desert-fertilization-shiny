@@ -1,6 +1,15 @@
 
 # README ------------------------------------------------------------------
 
+# Function to upload and format resin-related metadata from an Excel file
+# worksheet. Inputs include the Excel file name and worksheet name. As much as
+# possible, the collector id field (basically the identify of the collection
+# site (e.g., LDP) and type (e.g., IP)) is standardized based on observed
+# patterns to facilitate a match between the collector id entered in the Excel
+# file and the Sample ID in the corresponding Lachat data file (ideally from bar
+# code so always the same (but, yeah, right)). The purpose of the upload and
+# formatting is to extract relevant metadata to pair with Lachat output.
+
 
 # libraries ---------------------------------------------------------------
 

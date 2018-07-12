@@ -1,6 +1,13 @@
 
 # README ------------------------------------------------------------------
 
+# Function to upload resin-related Lachat data and associated metadata. This
+# function is called at the point where the raw Lachat data have been loaded
+# into R then married to metadata (site, date, etc.) either by manually adding
+# that information or from a merge from metadata in a spreadsheet (or both). The
+# workflow keeps track of upload iterations with a batch_upload. This function
+# gets the current batch_upload and increments it by one.
+
 
 # insert statement --------------------------------------------------------
 
@@ -115,9 +122,8 @@ INSERT INTO urbancndep.resin (
       dbExecute(pg,
                 resinDataUploadQuery)
       
-      # keep temp table for debugging until app is completely dialed
       # clean up
-      # dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
+      dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
       
       dbCommit(pg)
       

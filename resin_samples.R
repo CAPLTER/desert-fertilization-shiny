@@ -1,4 +1,7 @@
-# list of all possible resin sample IDs
+
+# README ------------------------------------------------------------------
+
+# list of all possible resin sample IDs for drop-down list to enter fieldID.
 
 resinSamples <- c(
 'NULL',
