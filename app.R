@@ -31,7 +31,7 @@
 
 # shiny options -----------------------------------------------------------
 
-options(shiny.maxRequestSize = 30)
+options(shiny.maxRequestSize = 30*1024^2)
 
 
 # libraries ---------------------------------------------------------------
