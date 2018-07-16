@@ -29,6 +29,11 @@
 # 1. cannot get dateInput type for shinyInput value
 
 
+# shiny options -----------------------------------------------------------
+
+options(shiny.maxRequestSize = 30)
+
+
 # libraries ---------------------------------------------------------------
 
 library(shiny)
