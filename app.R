@@ -638,7 +638,7 @@ server <- function(input, output, session) {
       # check for duplicates, combination of combination of fieldID,
       # collectionDate, Analyte Name, omit must be unique
     } else if (
-      anyDuplicated(mergedToUpload[grepl("unknown", mergedToUpload$`Sample Type`, ignore.case = TRUE), c("fieldID", "collectionDate", "Analyte Name", "omit")])
+      anyDuplicated(mergedToUpload[grepl("unknown", mergedToUpload$`Sample Type`, ignore.case = TRUE) & !grepl("blk", mergedToUpload$fieldID, ignore.case = TRUE), c("fieldID", "collectionDate", "Analyte Name", "omit")])
     ) {
       
       showNotification(ui = "at least one duplicate: fieldID x collectionDate x Analyte Name x omit",
