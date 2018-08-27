@@ -636,9 +636,18 @@ server <- function(input, output, session) {
                        type = 'error')
       
       # check for duplicates, combination of combination of fieldID,
-      # collectionDate, Analyte Name, omit must be unique
+      # collectionDate, and Analyte Name must be unique. This check updated
+      # 2018-08-27 to remove omit from the comparison.
     } else if (
-      anyDuplicated(mergedToUpload[grepl("unknown", mergedToUpload$`Sample Type`, ignore.case = TRUE) & !grepl("blk", mergedToUpload$fieldID, ignore.case = TRUE), c("fieldID", "collectionDate", "Analyte Name", "omit")])
+      anyDuplicated(
+        mergedToUpload %>% 
+        filter(
+          grepl("unknown", `Sample Type`, ignore.case = TRUE),
+          !grepl("blk", fieldID, ignore.case = TRUE),
+          is.na(omit)
+        ) %>% 
+        select(fieldID, collectionDate, `Analyte Name`)
+      )
     ) {
       
       showNotification(ui = "at least one duplicate: fieldID x collectionDate x Analyte Name x omit",
