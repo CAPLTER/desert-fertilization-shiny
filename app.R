@@ -169,6 +169,7 @@ ui <- tagList(
                                  selectInput(inputId = "fertilizerSite",
                                              label = "fertilized site",
                                              choices = c('DBG',
+                                                         'MVP',
                                                          'EME',
                                                          'EMW',
                                                          'LDP',
