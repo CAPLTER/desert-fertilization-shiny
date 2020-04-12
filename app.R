@@ -28,29 +28,9 @@
 # issues:
 # 1. cannot get dateInput type for shinyInput value
 
+# call global R -----------------------------------------------------------
 
-# shiny options -----------------------------------------------------------
-
-options(shiny.maxRequestSize = 30*1024^2)
-
-
-# libraries ---------------------------------------------------------------
-
-library(shiny)
-library(readxl)
-library(DT)
-library(tools)
-library(tidyverse)
-library(DBI)
-library(RPostgreSQL)
-
-
-# helper functions and config settings ------------------------------------
-source('resin_samples.R')
-source('import_metadata.R') 
-source('format_lachat.R')
-source('config.R')
-source('data_upload.R')
+source('global.R')
 
 
 # UI ----------------------------------------------------------------------
@@ -161,66 +141,14 @@ ui <- tagList(
              ), # close 'resin: data viewer' tab panel
              
              tabPanel("fertilizer",
-                      fluidPage(
-                        fluidRow( 
-                          column(id = 'leftPanel', 2,
-                                 br(),
-                                 br(),
-                                 selectInput(inputId = "fertilizerSite",
-                                             label = "fertilized site",
-                                             choices = c('DBG',
-                                                         'MVP',
-                                                         'EME',
-                                                         'EMW',
-                                                         'LDP',
-                                                         'MCN',
-                                                         'MCS',
-                                                         'PWP',
-                                                         'SME',
-                                                         'SMW',
-                                                         'SNE',
-                                                         'SNW',
-                                                         'SRR',
-                                                         'UMP',
-                                                         'WTM'),
-                                             selected = NULL,
-                                             multiple = FALSE),
-                                 br(),
-                                 dateInput(inputId = "fertilizerDate",
-                                           label = "date of fertilization",
-                                           format = "yyyy-mm-dd"),
-                                 br(),
-                                 numericInput(inputId = "nitrogenAmount",
-                                              label = "N added",
-                                              value = 1.715),
-                                 br(),
-                                 numericInput(inputId = "phosphorusAmount",
-                                              label = "P added",
-                                              value = 1.224),
-                                 br(),
-                                 textInput(inputId = "nitrogenPhosphorusAmount",
-                                           label = "N and P added",
-                                           value = "1.715 and 1.224"),
-                                 br(),
-                                 actionButton(inputId = "addFertilizerData",
-                                              label = "add fertilizer data",
-                                              style = "text-align:center; border-sytle:solid; border-color:#0000ff;"),
-                                 br(),
-                                 br()
-                          ), # close the left col
-                          column(id = "fertilizerDataViewerRightPanel", 10,
-                                 DT::dataTableOutput("fertilizerDataOutput")
-                          ) # close the right col
-                        ) # close the row
-                      ) # close the page
-             ) # close 'fertilizer' tab panel
+                      fertilizerUI("fertilizerManager") 
+             ) # close fertilizer module UI
              
   ) # close navbar/page
 ) # close tagList
 
 
 server <- function(input, output, session) {
-  
   
   # helper functions for interactive tables ---------------------------------
   
@@ -406,26 +334,6 @@ server <- function(input, output, session) {
     
   })
   
-  # DEBUGGING ---------------------------------------------------------------
-  
-  # observe(print({ shinyValue("omit_",
-  #                            nrow(lachatFile())) }))
-  # observe(print({ shinyValue("notes_",
-  #                            nrow(lachatFile())) }))
-  # observe(print({ colnames(lachatWithAnnotations()) }))
-  # observe(print({ lachatWithAnnotations() %>%
-  #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
-  #     select(samples, collDate, notes, `Sample ID`:sourceFile) }))
-  # observe(print({ metadataFile() }))
-  # observe(print({ colnames(mergedWithAnnotations()) }))
-  # observe(print({ mergedWithAnnotations() %>% 
-  #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>% 
-  #     select(newDate, collectionDate) }))
-  # observe(print({ input$queryAllResin }))
-  # observe(print({ addedFert() }))
-  # observe(print({ addFert() }))
-  
-  ####
   
   
   # resin metadata ----------------------------------------------------------
@@ -671,7 +579,7 @@ server <- function(input, output, session) {
   resinData <- eventReactive(input$queryResinData, {
     
     # establish db connection
-    pg <- database_connection()
+    # pg <- database_connection()
     
     if (input$queryAllResin == TRUE) {
       
@@ -702,12 +610,12 @@ server <- function(input, output, session) {
     }
     
     isolate(
-      resinDataReturn <- dbGetQuery(pg,
+      resinDataReturn <- dbGetQuery(desfertPool,
                                     resinDataQuery)
     )
     
     
-    dbDisconnect(pg)
+    # dbDisconnect(pg)
     
     # rather than a simple return, we need to address conditions when there are
     # not any data that match the search criteria
@@ -744,187 +652,36 @@ server <- function(input, output, session) {
                  pageLength = 25,
                  ordering = TRUE,
                  searching = TRUE),
-  rownames = F) # close renderDataTable
+  rownames = F) # close output$resinDataOutput
   
   
   # fertilizer --------------------------------------------------------------
   
-  # create listener for adding fert samples
-  fertadd <- reactiveValues(fertAdded = 0)
-  
-  # query existing fertilizer data (includes listener to refresh when a new
-  # sample is added)
-  fertilizerData <- reactive({
-    
-    # add listener for adding a fert sample
-    fertadd$fertAdded 
-    
-    # establish db connection
-    pg <- database_connection()
-    
-    baseFertilizerDataQuery <- '
-      SELECT
-        s.code as site_code,
-        f.date as application_date,
-        f."N" as nitrogen,
-        f."P" as phosphorus
-      FROM urbancndep.fertilizer_applications f
-      JOIN urbancndep.sites s ON (f.site_id = s.id)
-      ;'
-    
-    fertilizerDataQuery  <- sqlInterpolate(ANSI(),
-                                           baseFertilizerDataQuery)
-    
-    isolate(
-      fertilizerDataReturn <- dbGetQuery(pg,
-                                         fertilizerDataQuery)
-    )
-    
-    dbDisconnect(pg)
-    
-    return(fertilizerDataReturn)
-    
-  })
-  
-  # render existing queried fert data
-  output$fertilizerDataOutput <- DT::renderDataTable({
-    
-    fertilizerData()
-    
-  },
-  selection = 'none',
-  escape = FALSE,
-  server = TRUE,
-  options = list(paging = TRUE,
-                 pageLength = 25,
-                 ordering = TRUE,
-                 searching = TRUE,
-                 order = list(list(1, 'desc'), list(0, 'asc'))
-  ),
-  rownames = F) # close renderDataTable
+  callModule(module = fertilizer,
+             id = "fertilizerManager")  
   
   
-  # add fertilizer data
-  observeEvent(input$addFertilizerData, {
-    
-    # upload requies numerous inputs
-    req(input$fertilizerSite,
-        input$fertilizerDate,
-        input$nitrogenAmount,
-        input$phosphorusAmount,
-        input$nitrogenPhosphorusAmount)
-    
-    # text site code to numeric equivalent
-    if (input$fertilizerSite == 'DBG') {
-      numericSiteCode <- 2
-    } else if (input$fertilizerSite == 'EME') {
-      numericSiteCode <- 3
-    } else if (input$fertilizerSite == 'EMW') {
-      numericSiteCode <- 4
-    } else if (input$fertilizerSite == 'LDP') {
-      numericSiteCode <- 6
-    } else if (input$fertilizerSite == 'MCN') {
-      numericSiteCode <- 8
-    } else if (input$fertilizerSite == 'MCS') {
-      numericSiteCode <- 9
-    } else if (input$fertilizerSite == 'MVP') {
-      numericSiteCode <- 10
-    } else if (input$fertilizerSite == 'PWP') {
-      numericSiteCode <- 11
-    } else if (input$fertilizerSite == 'SME') {
-      numericSiteCode <- 12
-    } else if (input$fertilizerSite == 'SMW') {
-      numericSiteCode <- 13
-    } else if (input$fertilizerSite == 'SNE') {
-      numericSiteCode <- 14
-    } else if (input$fertilizerSite == 'SNW') {
-      numericSiteCode <- 15
-    } else if (input$fertilizerSite == 'SRR') {
-      numericSiteCode <- 16
-    } else if (input$fertilizerSite == 'UMP') {
-      numericSiteCode <- 17
-    } else if (input$fertilizerSite == 'WTM') {
-      numericSiteCode <- 18
-    } else  {
-      numericSiteCode <- NULL
-    }
-    
-    # establish db connection
-    pg <- database_connection()
-    
-    baseFertilizerInsertQuery <- '
-    INSERT INTO urbancndep.fertilizer_applications
-    (
-      site_id,
-      date,
-      "N",
-      "P",
-      "N_and_P"
-    )
-    VALUES
-    (
-      ?fertSite,
-      ?fertDate,
-      ?fertN,
-      ?fertP,
-      ?fertNP
-    );'
-    
-    # build query from base and input parameters
-    fertilizerInsertQuery <- sqlInterpolate(ANSI(),
-                                            baseFertilizerInsertQuery,
-                                            fertSite = numericSiteCode,
-                                            fertDate = as.character(input$fertilizerDate),
-                                            fertN = input$nitrogenAmount,
-                                            fertP = input$phosphorusAmount,
-                                            fertNP = input$nitrogenPhosphorusAmount)
-    
-    tryCatch({
-      
-      # begin transaction
-      dbGetQuery(pg, "BEGIN TRANSACTION")
-      
-      # execute query
-      isolate(dbExecute(pg, fertilizerInsertQuery))
-      
-      dbCommit(pg)
-      
-      showNotification(ui = "successfully uploaded",
-                       duration = 8,
-                       closeButton = TRUE,
-                       type = 'message')
-      
-      # change listener state when adding a fert sample
-      fertadd$fertAdded <- isolate(fertadd$fertAdded + 1)
-      
-    }, warning = function(warn) {
-      
-      showNotification(ui = paste("there is a warning:  ", warn),
-                       duration = NULL,
-                       closeButton = TRUE,
-                       type = 'warning')
-      
-      print(paste("WARNING: ", warn))
-      
-    }, error = function(err) {
-      
-      showNotification(ui = paste("there was an error:  ", err),
-                       duration = NULL,
-                       closeButton = TRUE,
-                       type = 'error')
-      
-      print(paste("ERROR: ", err))
-      print("ROLLING BACK TRANSACTION")
-      
-      dbRollback(pg)
-      
-    }) # close try catch
-    
-    # close database connection
-    dbDisconnect(pg)
-    
-  })
   
+  # debugging ---------------------------------------------------------------
+  
+  # observe(print({ shinyValue("omit_",
+  #                            nrow(lachatFile())) }))
+  # observe(print({ shinyValue("notes_",
+  #                            nrow(lachatFile())) }))
+  # observe(print({ colnames(lachatWithAnnotations()) }))
+  # observe(print({ lachatWithAnnotations() %>%
+  #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
+  #     select(samples, collDate, notes, `Sample ID`:sourceFile) }))
+  # observe(print({ metadataFile() }))
+  # observe(print({ colnames(mergedWithAnnotations()) }))
+  # observe(print({ mergedWithAnnotations() %>% 
+  #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>% 
+  #     select(newDate, collectionDate) }))
+  # observe(print({ input$queryAllResin }))
+  # observe(print({ addedFert() }))
+  # observe(print({ addFert() }))
+  
+  ####
   
 } # close server
 
