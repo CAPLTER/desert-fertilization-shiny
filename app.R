@@ -46,13 +46,21 @@ ui <- tagList(
            border-color: #0000ff; }"),
       HTML("#mergeMetaLachat { border-style: solid;
            border-color: #0000ff; }"),
-      HTML("#lachatUpload { border-style: solid;
-           border-color: #1aff1a; }"),
+      # HTML("#lachatUpload { border-style: solid;
+      #      border-color: #1aff1a; }"),
       HTML("#uploadMetaLachat { border-style: solid;
            border-color: #1aff1a; }")
     ) # close tags$head
   ), # close tagss$style
+  tags$script(
+    # notable stmt
+    HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
+                                         Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());
+                                        })")
+  ), # close tags$script
   navbarPage("desert fertilization",
+             
+             # resin upload tab --------------------------------------------------------
              
              tabPanel("resin: file upload",
                       fluidPage(
@@ -64,12 +72,12 @@ ui <- tagList(
                                            accept = c("text/csv",
                                                       "application/vnd.ms-excel",
                                                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
-                                 actionButton("lachatAnnotate",
-                                              "ANNOTATE lachat"),
-                                 br(),
-                                 br(),
+                                 # actionButton("lachatAnnotate",
+                                 #              "ANNOTATE lachat"),
+                                 helpText(id = "explainLachatUpload",
+                                          "use upload lachat to upload annotated lachat data without merging"),
                                  actionButton("lachatUpload",
-                                              "UPLOAD lachat"),
+                                              "upload lachat"),
                                  br(),
                                  hr(),
                                  fileInput("file2", "choose metadata file",
@@ -82,33 +90,33 @@ ui <- tagList(
                                            value = "",
                                            placeholder = "e.g., Winter2015"),
                                  actionButton("importMetadata",
-                                              "IMPORT metadata"),
+                                              "1. import metadata"),
                                  br(),
                                  br(),
                                  actionButton("mergeMetaLachat",
-                                              "MERGE meta & lachat"),
+                                              "2. merge metadata+lachat"),
                                  br(),
                                  br(),
                                  actionButton("uploadMetaLachat",
-                                              "UPLOAD meta & lachat"),
+                                              "3. merge metadata+lachat"),
                                  br(),
                                  br()
                           ), # close the left col
                           column(id = "fileUploadRightPanel", 10,
-                                 DT::dataTableOutput("lachatPreview"),
-                                 br(),
-                                 br(),
-                                 DT::dataTableOutput("metadataPreview"),
+                                 # lachat annotations
                                  DT::dataTableOutput("dynamicLachat"),
-                                 tags$script(HTML("Shiny.addCustomMessageHandler('unbind-DT', function(id) {
-          Shiny.unbindAll($('#'+id).find('table').DataTable().table().node());
-                            })")), # notable stmt
-                                 hr(),
-                                 DT::dataTableOutput("dynamicMerged")
+                                 uiOutput("lachatPreviewDivider"),
+                                 DT::dataTableOutput("dynamicLachatPreview"),
+                                 # lachat merged
+                                 DT::dataTableOutput("dynamicMerged"),
+                                 uiOutput("mergedPreviewDivider"),
+                                 DT::dataTableOutput("dynamicMergedPreview")
                           ) # close the right col
                         ) # close the row
                       ) # close the page
              ), # close 'resin: file upload' tab panel
+             
+             # resin viewer tab --------------------------------------------------------
              
              tabPanel("resin: data viewer",
                       fluidPage(
@@ -139,6 +147,8 @@ ui <- tagList(
                         ) # close the row
                       ) # close the page
              ), # close 'resin: data viewer' tab panel
+             
+             # fertilizer tab ----------------------------------------------------------
              
              tabPanel("fertilizer",
                       fertilizerUI("fertilizerManager") 
@@ -172,6 +182,8 @@ server <- function(input, output, session) {
   
   # resin lachat data -------------------------------------------------------
   
+  # annotate lachat ---------------------------------------------------------
+  
   # LACHAT data from file upload
   lachatFile <- reactive({
     
@@ -203,31 +215,22 @@ server <- function(input, output, session) {
     
   })
   
-  
-  # preview of imported lachat data
-  output$lachatPreview <- DT::renderDataTable({
+  # add visual separator between dynamic data and preview of data to upload
+  output$lachatPreviewDivider <- renderUI({
     
-    head(lachatFile())
+    req(input$file1)
     
-  },
-  selection = 'none',
-  escape = FALSE,
-  server = TRUE,
-  options = list(paging = TRUE,
-                 pageLength = 25,
-                 ordering = FALSE,
-                 searching = FALSE),
-  rownames = F) # close renderDataTable
+    tagList(
+      hr(),
+      p("data to preview",
+        style = "text-align: left; background-color: LightGray; color: black;")
+    )
+    
+  }) 
   
   
   # render LACHAT file upload and interactive data fields
   output$dynamicLachat <- DT::renderDataTable({
-    
-    # load lachat file into memory but only render on click
-    req(input$lachatAnnotate)
-    
-    # if annotating, remove lachat preview
-    removeUI(selector = "#lachatPreview")
     
     lachatFile() %>% 
       mutate(
@@ -277,18 +280,42 @@ server <- function(input, output, session) {
   lachatWithAnnotations <- reactive({
     
     lachatFile() %>%
-      mutate(omit = shinyValue("omit_",
-                               nrow(lachatFile())),
-             fieldID = shinyValue('fieldID_',
-                                  nrow(lachatFile())),
-             collectionDate = shinyValue("collectionDate_",
-                                         nrow(lachatFile())),
-             notes = shinyValue("notes_",
-                                nrow(lachatFile()))
+      mutate(
+        omit = shinyValue("omit_",
+                          nrow(lachatFile())),
+        fieldID = shinyValue('fieldID_',
+                             nrow(lachatFile())),
+        collectionDate = shinyValue("collectionDate_",
+                                    nrow(lachatFile())),
+        notes = shinyValue("notes_",
+                           nrow(lachatFile()))
       )
     
   })
   
+  # preview lachatWithAnnotations before upload
+  output$dynamicLachatPreview <- DT::renderDataTable({
+    
+    lachatWithAnnotations() %>%
+      filter(
+        grepl("unknown", `Sample Type`, ignore.case = TRUE),
+        omit == FALSE
+      ) %>% 
+      select(notes, collectionDate, fieldID, `Sample ID`, `Sample Type`, `Cup Number`, `Analyte Name`, `Peak Concentration`)
+    
+  },
+  selection = 'none',
+  escape = FALSE,
+  server = FALSE,
+  options = list(bFilter = 0,
+                 bLengthChange = F,
+                 bPaginate = F,
+                 bSort = F
+  ),
+  rownames = F) # close output$dynamicLachatPreview
+  
+  
+  # upload annotated --------------------------------------------------------
   
   observeEvent(input$lachatUpload, {
     
@@ -305,9 +332,11 @@ server <- function(input, output, session) {
     # check if any unknowns not flagged to omit are missing a fieldID or Date;
     # notify user if so else upload to database
     if (
-      any(lachatToUpload$`Sample Type` %in% c('Unknown', 'unknown') &
-          lachatToUpload$omit == FALSE &
-          (is.na(lachatToUpload$fieldID) | is.na(lachatToUpload$collectionDate)))
+      any(
+        lachatToUpload$`Sample Type` %in% c('Unknown', 'unknown') &
+        lachatToUpload$omit == FALSE &
+        (is.na(lachatToUpload$fieldID) | is.na(lachatToUpload$collectionDate))
+      )
     ) { 
       
       showNotification(ui = "at least one unknown missing fieldID/collection date, or flag to omit",
@@ -328,21 +357,27 @@ server <- function(input, output, session) {
       
     } else {
       
-      data_upload(lachatToUpload)
+      # data_upload(lachatToUpload)
+      
+      showNotification(ui = "currently disabled",
+                       duration = NULL,
+                       closeButton = TRUE,
+                       type = 'error')
       
     } # close missing fieldID or data if-else
     
   })
   
   
-  
-  # resin metadata ----------------------------------------------------------
+  # metadata file -----------------------------------------------------------
   
   # metadata from file upload
   metadataFile <- eventReactive(input$importMetadata, {
     
-    req(input$file2,
-        input$metadataWorksheet)
+    req(
+      input$file2,
+      input$metadataWorksheet
+    )
     
     validate(
       need(file_ext(input$file2$datapath) %in% c("xls", "xlsx"), "data file must be of type xls, or xlsx")
@@ -350,8 +385,24 @@ server <- function(input, output, session) {
     
     tryCatch({
       
-      import_metadata(input$file2$datapath,
-                      input$metadataWorksheet)
+      metadataFromFile <- import_metadata(
+        input$file2$datapath,
+        input$metadataWorksheet
+      )
+      
+      showNotification(ui = "successfully imported",
+                       duration = 5,
+                       closeButton = TRUE,
+                       type = 'message')
+      
+    }, warning = function(warn) {
+      
+      showNotification(ui = paste("imported with warning:  ", warn),
+                       duration = NULL,
+                       closeButton = TRUE,
+                       type = 'warning')
+      
+      print(paste("WARNING:", warn))
       
     }, error = function(err) {
       
@@ -361,25 +412,13 @@ server <- function(input, output, session) {
                        type = 'error',
                        action = a(href = "javascript:location.reload();", "reload the page"))
       
+      print(paste("ERROR:", err))
+      
     }) # close try catch
     
-  }) # close eventReactive
-  
-  
-  # preview imported metadata
-  output$metadataPreview <- DT::renderDataTable({
+    return(metadataFromFile)
     
-    head(metadataFile())
-    
-  },
-  selection = 'none',
-  escape = FALSE,
-  server = TRUE,
-  options = list(paging = TRUE,
-                 pageLength = 25,
-                 ordering = FALSE,
-                 searching = FALSE),
-  rownames = F) # close renderDataTable
+  }) # close eventReactive metadataFile 
   
   
   # resin merge -------------------------------------------------------------
@@ -388,8 +427,10 @@ server <- function(input, output, session) {
   mergedData <- eventReactive(input$mergeMetaLachat, {
     
     # merging requires successful imports and processing of field and lab data
-    req(lachatFile(),
-        metadataFile())
+    req(
+      lachatFile(),
+      metadataFile()
+    )
     
     # check that the number of rows following the join would not create a data
     # entity with more rows than the original lachat file
@@ -406,8 +447,9 @@ server <- function(input, output, session) {
     } else {
       
       # remove previous UIs if merge can proceed
-      removeUI(selector = "#lachatPreview")
-      removeUI(selector = "#metadataPreview")
+      removeUI(selector = "#dynamicLachat")
+      removeUI(selector = "#lachatPreviewDivider")
+      removeUI(selector = "#dynamicLachatPreview")
       
       # merge lab and field data based on fieldID and idToJoin (copy of lachat
       # Sample ID); NULL collection dates indicate a match was not found -
@@ -428,18 +470,33 @@ server <- function(input, output, session) {
     
   })
   
+  
+  # add visual separator between dynamic data and preview of data to upload
+  output$mergedPreviewDivider <- renderUI({
+    
+    req(input$mergeMetaLachat)
+    
+    tagList(
+      hr(),
+      p("data to preview",
+        style = "text-align: left; background-color: LightGray; color: black;")
+    )
+    
+  }) 
+  
   # render merged data and interactive data fields
   output$dynamicMerged <- DT::renderDataTable({
     
-    # require existence of a merged data
-    # need to make this not just merged data but merged data not = null
-    req(mergedData())
+    # ensure merged data not = null
+    validate(
+      need(!is.null(mergedData()), message = "merged data is empty")
+    )
     
     mergedData() %>% 
       mutate(
         omit = shinyInput(checkboxInput,
                           nrow(lachatFile()),
-                          "omit_",
+                          "omitthis_",
                           value = FALSE,
                           width = "20px"),
         newFieldID = shinyInput(selectInput,
@@ -494,18 +551,53 @@ server <- function(input, output, session) {
   mergedWithAnnotations <- reactive({
     
     mergedData() %>%
-      mutate(omit = shinyValue("omit_",
-                               nrow(mergedData())),
-             newFieldID = shinyValue('newFieldID_',
-                                     nrow(mergedData())),
-             newDate = shinyValue('newDate_',
-                                  nrow(mergedData())),
-             newNotes = shinyValue('newNotes_',
-                                   nrow(mergedData()))
+      mutate(
+        omit = shinyValue("omitthis_",
+                          nrow(mergedData())),
+        newFieldID = shinyValue('newFieldID_',
+                                nrow(mergedData())),
+        newDate = shinyValue('newDate_',
+                             nrow(mergedData())),
+        newNotes = shinyValue('newNotes_',
+                              nrow(mergedData()))
+      ) %>% 
+      # merge any old and new notes
+      mutate(
+        newNotes = as.character(newNotes)
+      ) %>%
+      mutate(notes = case_when(
+        is.na(notes) & !is.na(newNotes) ~ newNotes,
+        !is.na(notes) & is.na(newNotes) ~ notes,
+        notes != "" & newNotes != "" ~ paste0(notes, "; ", newNotes),
+        TRUE ~ notes )
       )
     
   })
   
+  
+  # preview mergedWithAnnotations before upload
+  output$dynamicMergedPreview <- DT::renderDataTable({
+    
+    mergedWithAnnotations() %>%
+      filter(
+        grepl("unknown", `Sample Type`, ignore.case = TRUE),
+        omit == FALSE
+      ) %>% 
+      select(notes, collectionDate, newDate, fieldID, `Sample ID`, newFieldID, `Sample Type`, `Analyte Name`, `Peak Concentration`)
+    
+  },
+  selection = 'none',
+  escape = FALSE,
+  server = FALSE,
+  options = list(bFilter = 0,
+                 bLengthChange = F,
+                 bPaginate = F,
+                 bSort = F
+  ),
+  rownames = F) # close output$dynamicMergedPreview
+  
+  
+  # upload merged -----------------------------------------------------------
   
   observeEvent(input$uploadMetaLachat, {
     
@@ -514,7 +606,7 @@ server <- function(input, output, session) {
       mutate(
         newFieldID = replace(newFieldID, newFieldID == "NULL", NA),
         newDate = replace(newDate, newDate == "", NA),
-        newNotes = replace(newNotes, newNotes == "", NA),
+        notes = replace(notes, notes == "", NA),
         fieldID = case_when(
           !is.na(newFieldID) ~ newFieldID,
           TRUE ~ fieldID
@@ -523,10 +615,6 @@ server <- function(input, output, session) {
           !is.na(newDate) ~ newDate,
           TRUE ~ collectionDate
         ),
-        notes = case_when(
-          !is.na(newNotes) ~ newNotes,
-          TRUE ~ notes 
-        ),
         collectionDate = as.Date(collectionDate),
         omit = as.logical(omit)
       )
@@ -534,9 +622,12 @@ server <- function(input, output, session) {
     # check if any unknowns not flagged to omit are missing a fieldID or Date;
     # notify user if so else upload to database
     if (
-      any(mergedToUpload$`Sample Type` %in% c('Unknown', 'unknown') &
-          mergedToUpload$omit == FALSE &
-          (is.na(mergedToUpload$fieldID) | is.na(mergedToUpload$collectionDate)))
+      any(
+        mergedToUpload$`Sample Type` %in% c('Unknown', 'unknown') &
+        mergedToUpload$omit == FALSE &
+        !grepl("BLK", mergedToUpload$`Sample ID`, ignore.case = T) &
+        (is.na(mergedToUpload$fieldID) | is.na(mergedToUpload$collectionDate))
+      )
     ) { 
       
       showNotification(ui = "at least one unknown missing fieldID/collection date, or flag to omit",
@@ -545,9 +636,10 @@ server <- function(input, output, session) {
                        type = 'error')
       
       # check for duplicates, combination of combination of fieldID,
-      # collectionDate, and Analyte Name must be unique. This check updated
-      # 2018-08-27 to remove omit from the comparison.
+      # collectionDate, and Analyte Name must be unique.
+      # This check updated 2018-08-27 to remove omit from the comparison.
     } else if (
+      
       anyDuplicated(
         mergedToUpload %>% 
         filter(
@@ -557,6 +649,7 @@ server <- function(input, output, session) {
         ) %>% 
         select(fieldID, collectionDate, `Analyte Name`)
       )
+      
     ) {
       
       showNotification(ui = "at least one duplicate: fieldID x collectionDate x Analyte Name x omit",
@@ -578,16 +671,12 @@ server <- function(input, output, session) {
   # query discharge data from database for viewing
   resinData <- eventReactive(input$queryResinData, {
     
-    # establish db connection
-    # pg <- database_connection()
-    
     if (input$queryAllResin == TRUE) {
       
       baseResinDataQuery <- '
       SELECT *
       FROM
-        urbancndep.resin;
-      '
+        urbancndep.resin;'
       
       resinDataQuery  <- sqlInterpolate(ANSI(),
                                         baseResinDataQuery)
@@ -599,8 +688,7 @@ server <- function(input, output, session) {
       FROM
         urbancndep.resin
       WHERE 
-        collection_date BETWEEN ?start AND ?end;
-      '
+        collection_date BETWEEN ?start AND ?end;'
       
       resinDataQuery  <- sqlInterpolate(ANSI(),
                                         baseResinDataQuery,
@@ -609,13 +697,17 @@ server <- function(input, output, session) {
       
     }
     
-    isolate(
-      resinDataReturn <- dbGetQuery(desfertPool,
-                                    resinDataQuery)
-    )
+    # establish db connection
+    pg <- database_connection()
     
+    # run query
+    resinDataReturn <- dbGetQuery(pg,
+                                  resinDataQuery)
     
-    # dbDisconnect(pg)
+    # resinDataReturn <- run_interpolated_query(resinDataQuery)
+    
+    # disconnect from db
+    dbDisconnect(pg)
     
     # rather than a simple return, we need to address conditions when there are
     # not any data that match the search criteria
@@ -661,7 +753,6 @@ server <- function(input, output, session) {
              id = "fertilizerManager")  
   
   
-  
   # debugging ---------------------------------------------------------------
   
   # observe(print({ shinyValue("omit_",
@@ -673,15 +764,15 @@ server <- function(input, output, session) {
   #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
   #     select(samples, collDate, notes, `Sample ID`:sourceFile) }))
   # observe(print({ metadataFile() }))
+  # observe(print({ str(mergedWithAnnotations()) }))
   # observe(print({ colnames(mergedWithAnnotations()) }))
-  # observe(print({ mergedWithAnnotations() %>% 
-  #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>% 
+  # observe(print({ mergedWithAnnotations() %>%
+  #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
   #     select(newDate, collectionDate) }))
   # observe(print({ input$queryAllResin }))
   # observe(print({ addedFert() }))
   # observe(print({ addFert() }))
   
-  ####
   
 } # close server
 

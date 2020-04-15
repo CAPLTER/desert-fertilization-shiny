@@ -97,8 +97,8 @@ INSERT INTO urbancndep.resin (
     pg <- database_connection()
     
     # get current batch number and advance
-    batchUploadCurrent <- dbGetQuery(pg, 'SELECT MAX(upload_batch) FROM urbancndep.resin;')
-    batchUploadNext <- batchUploadCurrent + 1
+    batchUploadCurrent <- dbGetQuery(pg, 'SELECT MAX(upload_batch) AS max FROM urbancndep.resin;')
+    batchUploadNext <- as.numeric(batchUploadCurrent$max) + 1
     
     tryCatch({
       
@@ -135,21 +135,21 @@ INSERT INTO urbancndep.resin (
       
     }, warning = function(warn) {
       
-      showNotification(ui = paste("there is a warning:  ", warn),
+      showNotification(ui = paste("there is a warning:", warn),
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'warning')
       
-      print(paste("WARNING: ", warn))
+      print(paste("WARNING:", warn))
       
     }, error = function(err) {
       
-      showNotification(ui = paste("there was an error:  ", err),
+      showNotification(ui = paste("there was an error:", err),
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
       
-      print(paste("ERROR: ", err))
+      print(paste("ERROR:", err))
       print("ROLLING BACK TRANSACTION")
       
       dbRollback(pg)

@@ -114,8 +114,14 @@ fertilizer <- function(input, output, session) {
     interpolatedQuery  <- sqlInterpolate(ANSI(),
                                          baseQuery)
     
-    fertilizerDataReturn <- dbGetQuery(desfertPool,
+    # establish db connection
+    pg <- database_connection()
+    
+    fertilizerDataReturn <- dbGetQuery(pg,
                                        interpolatedQuery)
+    
+    # close database connection
+    dbDisconnect(pg)
     
     return(fertilizerDataReturn)
     
@@ -213,10 +219,48 @@ fertilizer <- function(input, output, session) {
                                             fertP = input$phosphorusAmount,
                                             fertNP = input$nitrogenPhosphorusAmount)
     
-    run_interpolated_execution(fertilizerInsertQuery)
+    # establish db connection
+    pg <- database_connection()
     
-    # change listener state when adding a record
-    fertadd$fertAdded <- isolate(fertadd$fertAdded + 1)
+    tryCatch({
+      
+      dbGetQuery(pg, "BEGIN TRANSACTION")
+      
+      # execute insert query
+      dbExecute(pg,
+                fertilizerInsertQuery)
+      
+      
+      dbCommit(pg)
+      
+      # change listener state when adding a record
+      fertadd$fertAdded <- isolate(fertadd$fertAdded + 1)
+      
+    }, warning = function(warn) {
+      
+      showNotification(ui = paste("there is a warning:  ", warn),
+                       duration = NULL,
+                       closeButton = TRUE,
+                       type = 'warning')
+      
+      print(paste("WARNING: ", warn))
+      
+    }, error = function(err) {
+      
+      showNotification(ui = paste("there was an error:  ", err),
+                       duration = NULL,
+                       closeButton = TRUE,
+                       type = 'error')
+      
+      print(paste("ERROR: ", err))
+      print("ROLLING BACK TRANSACTION")
+      
+      dbRollback(pg)
+      
+    }) # close try catch
+    
+    # close database connection
+    dbDisconnect(pg)
     
   })
   
