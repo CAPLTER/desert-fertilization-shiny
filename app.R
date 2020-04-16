@@ -1,32 +1,8 @@
 
 # README ------------------------------------------------------------------
 
-# Desert Fertilization application to address (1) current, backlog, and future
-# uploads of resin data, and (2) fertilizer applications.
+# see repository README
 
-# The approach taken here for the resin data is to upload the raw lachat data
-# and marry sample metadata directly to the machine output. This is different
-# than, for example, the stormwater data where raw lachat data are loaded then
-# results only are pulled out and coupled to a sampling event. The approach here
-# is advantageous in that the techs can handle all of the data entry. On the
-# pull side, we can query only unknowns not flagged for omit, then parse the
-# sample ID, which is standardized based on drop-down input. Of course, the
-# approach works better here (than, for example, stormwater) as there is a
-# one-to-one relationship between a sample and result, whereas there is a
-# one-to-many relationship between samples and result (Lachat, ICP, AQ2, etc.)
-# that is handled much better with a sampling event.
-
-# Resin Lachat data can be married to metadata using one of two approaches: (1)
-# manually enter all metadata details (site, date, notes), or (2) merge metadata
-# entered into an Excel file, and manually enter only information not available
-# from the merge. As a site and date are required for all Lachat unknowns are
-# required for upload, the latter is a far more efficient approach, at least in
-# those cases where metadata has already been entered.
-
-# Fertilizer is a simple upload and viewer.
-
-# issues:
-# 1. cannot get dateInput type for shinyInput value
 
 # call global R -----------------------------------------------------------
 
@@ -38,7 +14,6 @@ source('global.R')
 ui <- tagList(
   tags$head(
     tags$style(
-      # in use
       # HTML("#lachatAnnotate { border-style: solid;
       #      border-color: #0000ff; }"),
       # HTML("#mergeMetaLachat { border-style: solid;
@@ -72,8 +47,6 @@ ui <- tagList(
                                            accept = c("text/csv",
                                                       "application/vnd.ms-excel",
                                                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
-                                 # actionButton("lachatAnnotate",
-                                 #              "ANNOTATE lachat"),
                                  helpText(id = "explainLachatUpload",
                                           "use upload lachat to upload annotated lachat data without merging"),
                                  actionButton("lachatUpload",
@@ -90,16 +63,13 @@ ui <- tagList(
                                            value = "",
                                            placeholder = "e.g., Winter2015"),
                                  actionButton("importMetadata",
-                                              "1. import metadata"),
-                                 br(),
+                                              "1. import meta"),
                                  br(),
                                  actionButton("mergeMetaLachat",
-                                              "2. merge metadata+lachat"),
-                                 br(),
+                                              "2. merge meta+lachat"),
                                  br(),
                                  actionButton("uploadMetaLachat",
-                                              "3. upload metadata+lachat"),
-                                 br(),
+                                              "3. upload meta+lachat"),
                                  br()
                           ), # close the left col
                           column(id = "fileUploadRightPanel", 10,
@@ -137,7 +107,9 @@ ui <- tagList(
                                  actionButton(inputId = "clearFilterResinObservations",
                                               label = "clear filter",
                                               style = "text-align:center; border-sytle:solid; border-color:#0000ff;"),
-                                 br(),
+                                 checkboxInput(inputId = "resinUnknownsOnly",
+                                               label = "display only unknowns",
+                                               value = TRUE),
                                  br()
                           ), # close the left col
                           column(id = "resinDataViewerRightPanel", 10,
@@ -745,7 +717,7 @@ server <- function(input, output, session) {
     # return empty frame and message if empty set
     if (nrow(resinData()) == 0) {
       
-      resinToDisplay <- tibble(col = NA)
+      resinToDisplay <- tibble(sample_type = NA)
       
       showNotification(ui = "there are not any data in that date range",
                        duration = 5,
@@ -754,10 +726,17 @@ server <- function(input, output, session) {
       
     } else {
       
-     resinToDisplay <- resinData()
+      resinToDisplay <- resinData()
       
     }
-       
+    
+    if (input$resinUnknownsOnly == TRUE) {
+      
+      resinToDisplay <- resinToDisplay %>% 
+        filter(grepl("Unknown", sample_type, ignore.case = TRUE))
+      
+    } 
+    
     return(resinToDisplay)    
     
   },
@@ -779,8 +758,6 @@ server <- function(input, output, session) {
   
   # debugging ---------------------------------------------------------------
   
-  # observe(print({ shinyValue("omit_",
-  #                            nrow(lachatFile())) }))
   # observe(print({ shinyValue("notes_",
   #                            nrow(lachatFile())) }))
   # observe(print({ colnames(lachatWithAnnotations()) }))
@@ -793,8 +770,6 @@ server <- function(input, output, session) {
   # observe(print({ mergedWithAnnotations() %>%
   #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
   #     select(newDate, collectionDate) }))
-  # observe(print({ input$queryAllResin }))
-  # observe(print({ addedFert() }))
   # observe(print({ addFert() }))
   
   
