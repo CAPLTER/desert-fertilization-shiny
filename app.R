@@ -359,7 +359,8 @@ server <- function(input, output, session) {
       metadataFromFile <- import_metadata(
         input$file2$datapath,
         input$metadataWorksheet
-      )
+      ) %>% 
+        mutate(notes = as.character(notes))
       
       showNotification(ui = "successfully imported",
                        duration = 5,
@@ -764,7 +765,9 @@ server <- function(input, output, session) {
   # observe(print({ lachatWithAnnotations() %>%
   #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
   #     select(samples, collDate, notes, `Sample ID`:sourceFile) }))
-  # observe(print({ metadataFile() }))
+  observe(print({ metadataFile() }))
+  observe(print({ mergedData() }))
+  observe(print({ mergedWithAnnotations() }))
   # observe(print({ str(mergedWithAnnotations()) }))
   # observe(print({ colnames(mergedWithAnnotations()) }))
   # observe(print({ mergedWithAnnotations() %>%
