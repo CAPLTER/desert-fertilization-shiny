@@ -39,17 +39,17 @@ ui <- tagList(
   tags$head(
     tags$style(
       # in use
-      HTML("#leftPanel { background: #D3D3D3; }"),
-      HTML("#lachatAnnotate { border-style: solid;
-           border-color: #0000ff; }"),
-      HTML("#mergeMetaLachat { border-style: solid;
-           border-color: #0000ff; }"),
-      HTML("#mergeMetaLachat { border-style: solid;
-           border-color: #0000ff; }"),
+      # HTML("#lachatAnnotate { border-style: solid;
+      #      border-color: #0000ff; }"),
+      # HTML("#mergeMetaLachat { border-style: solid;
+      #      border-color: #0000ff; }"),
+      # HTML("#mergeMetaLachat { border-style: solid;
+      #      border-color: #0000ff; }"),
       # HTML("#lachatUpload { border-style: solid;
       #      border-color: #1aff1a; }"),
-      HTML("#uploadMetaLachat { border-style: solid;
-           border-color: #1aff1a; }")
+      # HTML("#uploadMetaLachat { border-style: solid;
+      #      border-color: #1aff1a; }"),
+      HTML("#leftPanel { background: #D3D3D3; }")
     ) # close tags$head
   ), # close tagss$style
   tags$script(
@@ -98,7 +98,7 @@ ui <- tagList(
                                  br(),
                                  br(),
                                  actionButton("uploadMetaLachat",
-                                              "3. merge metadata+lachat"),
+                                              "3. upload metadata+lachat"),
                                  br(),
                                  br()
                           ), # close the left col
@@ -122,9 +122,8 @@ ui <- tagList(
                       fluidPage(
                         fluidRow( 
                           column(id = 'leftPanel', 2,
-                                 tags$b("date range:",
-                                        style = "text-align:center"),
-                                 br(),
+                                 p("date range:",
+                                   style = "text-align: left; background-color: LightGray; color: black;"),
                                  br(),
                                  dateInput("resinDataStartDate",
                                            "start:",
@@ -132,11 +131,11 @@ ui <- tagList(
                                  dateInput("resinDataEndDate",
                                            "end:",
                                            format = "yyyy-mm-dd"),
-                                 checkboxInput(inputId = "queryAllResin",
-                                               label = "view all (ignores date range)",
-                                               value = FALSE),
-                                 actionButton(inputId = "queryResinData",
-                                              label = "view",
+                                 actionButton(inputId = "filterResinObservations",
+                                              label = "filter",
+                                              style = "text-align:center; border-sytle:solid; border-color:#0000ff;"),
+                                 actionButton(inputId = "clearFilterResinObservations",
+                                              label = "clear filter",
                                               style = "text-align:center; border-sytle:solid; border-color:#0000ff;"),
                                  br(),
                                  br()
@@ -669,14 +668,34 @@ server <- function(input, output, session) {
   # resin samples viewer ----------------------------------------------------
   
   # query discharge data from database for viewing
-  resinData <- eventReactive(input$queryResinData, {
+  
+  # queryType: default vs parameterized query for observations
+  resinQueryType <- reactiveValues(default = "default")
+  
+  # actionButton filterObservations = parameterized query type
+  observeEvent(input$filterResinObservations, {
     
-    if (input$queryAllResin == TRUE) {
+    resinQueryType$default <- "param"
+    
+  })
+  
+  # actionButton clearFilterObservations = default query type
+  observeEvent(input$clearFilterResinObservations, {
+    
+    resinQueryType$default <- "default"
+    
+  })
+  
+  resinData <- reactive({
+    
+    if (resinQueryType$default == "default") {
       
       baseResinDataQuery <- '
       SELECT *
       FROM
-        urbancndep.resin;'
+        urbancndep.resin
+      ORDER BY upload_batch DESC, id ASC;
+      '
       
       resinDataQuery  <- sqlInterpolate(ANSI(),
                                         baseResinDataQuery)
@@ -688,12 +707,16 @@ server <- function(input, output, session) {
       FROM
         urbancndep.resin
       WHERE 
-        collection_date BETWEEN ?start AND ?end;'
+        collection_date BETWEEN ?start AND ?end
+      ORDER BY upload_batch DESC, id ASC;
+      '
       
-      resinDataQuery  <- sqlInterpolate(ANSI(),
-                                        baseResinDataQuery,
-                                        start = as.character(input$resinDataStartDate),
-                                        end = as.character(input$resinDataEndDate))
+      resinDataQuery <- sqlInterpolate(
+        ANSI(),
+        baseResinDataQuery,
+        start = as.character(isolate(input$resinDataStartDate)),
+        end = as.character(isolate(input$resinDataEndDate))
+      )
       
     }
     
@@ -704,27 +727,12 @@ server <- function(input, output, session) {
     resinDataReturn <- dbGetQuery(pg,
                                   resinDataQuery)
     
-    # resinDataReturn <- run_interpolated_query(resinDataQuery)
-    
     # disconnect from db
     dbDisconnect(pg)
     
     # rather than a simple return, we need to address conditions when there are
     # not any data that match the search criteria
     
-    # format the date if there are data
-    if (nrow(resinDataReturn) >= 1) {
-      
-      resinDataReturn <- resinDataReturn 
-      
-      # else build an empty frame with just NAs
-    } else {
-      
-      resinDataReturn <- data.frame(
-        sample_id = "no samples match those criteria"
-      )
-      
-    }
     
     return(resinDataReturn)
     
@@ -734,7 +742,23 @@ server <- function(input, output, session) {
   # render discharge data for viewing
   output$resinDataOutput <- DT::renderDataTable({
     
-    resinData()
+    # return empty frame and message if empty set
+    if (nrow(resinData()) == 0) {
+      
+      resinToDisplay <- tibble(col = NA)
+      
+      showNotification(ui = "there are not any data in that date range",
+                       duration = 5,
+                       closeButton = TRUE,
+                       type = 'warning')
+      
+    } else {
+      
+     resinToDisplay <- resinData()
+      
+    }
+       
+    return(resinToDisplay)    
     
   },
   selection = 'none',
