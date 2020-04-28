@@ -573,6 +573,9 @@ server <- function(input, output, session) {
   
   observeEvent(input$uploadMetaLachat, {
     
+    # write.csv(lachatFile(), '~/Desktop/lachatFromApp.csv')
+    # write.csv(metadataFile(), '~/Desktop/metaFromApp.csv')
+    
     # modify data object as needed for the DB
     mergedToUpload <- mergedWithAnnotations() %>%
       mutate(
@@ -590,7 +593,7 @@ server <- function(input, output, session) {
         collectionDate = as.Date(collectionDate),
         omit = as.logical(omit)
       )
-    
+
     # check if any unknowns not flagged to omit are missing a fieldID or Date;
     # notify user if so else upload to database
     if (
@@ -600,39 +603,39 @@ server <- function(input, output, session) {
         !grepl("BLK", mergedToUpload$`Sample ID`, ignore.case = T) &
         (is.na(mergedToUpload$fieldID) | is.na(mergedToUpload$collectionDate))
       )
-    ) { 
-      
+    ) {
+
       showNotification(ui = "at least one unknown missing fieldID/collection date, or flag to omit",
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
-      
+
       # check for duplicates, combination of combination of fieldID,
       # collectionDate, and Analyte Name must be unique.
       # This check updated 2018-08-27 to remove omit from the comparison.
     } else if (
-      
+
       anyDuplicated(
-        mergedToUpload %>% 
+        mergedToUpload %>%
         filter(
           grepl("unknown", `Sample Type`, ignore.case = TRUE),
           !grepl("blk", fieldID, ignore.case = TRUE),
           is.na(omit)
-        ) %>% 
+        ) %>%
         select(fieldID, collectionDate, `Analyte Name`)
       )
-      
+
     ) {
-      
+
       showNotification(ui = "at least one duplicate: fieldID x collectionDate x Analyte Name x omit",
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
-      
+
     } else {
-      
+
       data_upload(mergedToUpload)
-      
+
     } # close missing fieldID or data if-else
     
   }) # close uploadMetaLachat
@@ -765,6 +768,7 @@ server <- function(input, output, session) {
   # observe(print({ lachatWithAnnotations() %>%
   #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
   #     select(samples, collDate, notes, `Sample ID`:sourceFile) }))
+  observe(print({ lachatFile() }))
   observe(print({ metadataFile() }))
   observe(print({ mergedData() }))
   observe(print({ mergedWithAnnotations() }))
