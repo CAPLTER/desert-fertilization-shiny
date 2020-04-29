@@ -42,7 +42,17 @@ ui <- tagList(
                         fluidRow( 
                           column(id = 'leftPanel', 2,
                                  br(),
-                                 fileInput("file1", "choose lachat file",
+                                 helpText("1. identify a default date for sample collection (optional)",
+                                          style = "text-align: left; color: DarkBlue; font-weight: bold"),
+                                 textInput(inputId = "resinDateSeed",
+                                           label = NULL,
+                                           value = NULL,
+                                           placeholder = "yyyy-mm-dd"),
+                                 br(),
+                                 helpText("2. upload Lachat file",
+                                          style = "text-align: left; color: DarkBlue; font-weight: bold"),
+                                 fileInput(inputId = "file1", 
+                                           label = NULL,
                                            multiple = FALSE,
                                            accept = c("text/csv",
                                                       "application/vnd.ms-excel",
@@ -155,7 +165,17 @@ server <- function(input, output, session) {
   
   # annotate lachat ---------------------------------------------------------
   
-  # LACHAT data from file upload
+  # use a seed date if supplied - must be supplied before loading data
+  useDateSeed <- reactiveVal(FALSE)
+  
+  observeEvent(input$resinDateSeed, ignoreInit = FALSE, once = FALSE, {
+    
+    useDateSeed(TRUE)
+    
+  })
+  
+  
+  # lachat data from file upload
   lachatFile <- reactive({
     
     session$sendCustomMessage('unbind-DT', 'dynamicLachat') # notable stmt
@@ -203,6 +223,8 @@ server <- function(input, output, session) {
   # render LACHAT file upload and interactive data fields
   output$dynamicLachat <- DT::renderDataTable({
     
+    seedDate <- if (useDateSeed()) isolate(input$resinDateSeed) else NULL
+    
     lachatFile() %>% 
       mutate(
         omit = shinyInput(checkboxInput,
@@ -220,7 +242,8 @@ server <- function(input, output, session) {
         collectionDate = shinyInput(textInput,
                                     nrow(lachatFile()),
                                     "collectionDate_",
-                                    value = NULL,
+                                    # value = NULL,
+                                    value = seedDate,
                                     width = "120px",
                                     placeholder = "yyyy-mm-dd"),
         notes = shinyInput(textInput,
@@ -229,7 +252,7 @@ server <- function(input, output, session) {
                            value = NULL,
                            width = "120px")
       ) %>% 
-      select(notes, collectionDate, omit, fieldID, `Sample ID`, `Sample Type`, `Cup Number`, `Analyte Name`, `Peak Concentration`) %>%
+      select(notes, collectionDate, omit, fieldID, everything()) %>%
       filter(grepl("unknown", `Sample Type`, ignore.case = TRUE))
   },
   selection = 'none',
@@ -290,52 +313,80 @@ server <- function(input, output, session) {
   
   observeEvent(input$lachatUpload, {
     
-    # modify data object as needed for the DB
-    lachatToUpload <- lachatWithAnnotations() %>%
-      mutate(
-        fieldID = replace(fieldID, fieldID == "NULL", NA),
-        collectionDate = replace(collectionDate, collectionDate == "", NA),
-        collectionDate = as.Date(collectionDate),
-        notes = replace(notes, notes == "", NA),
-        omit = as.logical(omit)
-      )
-    
-    # check if any unknowns not flagged to omit are missing a fieldID or Date;
-    # notify user if so else upload to database
-    if (
-      any(
-        lachatToUpload$`Sample Type` %in% c('Unknown', 'unknown') &
-        lachatToUpload$omit == FALSE &
-        (is.na(lachatToUpload$fieldID) | is.na(lachatToUpload$collectionDate))
-      )
-    ) { 
+    # set tryCatch to fail if there are invalid date types; other checks are
+    # embedded within the tryCatch
+    tryCatch({
       
-      showNotification(ui = "at least one unknown missing fieldID/collection date, or flag to omit",
+      lachatToUpload <- lachatWithAnnotations() %>%
+        mutate(
+          fieldID = replace(fieldID, fieldID == "NULL", NA),
+          collectionDate = replace(collectionDate, collectionDate == "", NA),
+          collectionDate = case_when(
+            grepl("blk", fieldID, ignore.case = T) ~ as.Date(NA),
+            TRUE ~ as.Date(collectionDate)
+          ),
+          notes = replace(notes, notes == "", NA),
+          omit = as.logical(omit)
+        )
+      
+      # run a series of data validations (in addition to the tryCatch for
+      # confirming valid dates)
+      
+      # 1. check if any unknowns not flagged to omit are missing a fieldID or
+      # date; notify user if so else upload to database
+      if (
+        any(
+          lachatToUpload$`Sample Type` %in% c('Unknown', 'unknown') &
+          lachatToUpload$omit == FALSE &
+          !grepl("BLK", lachatToUpload$`Sample ID`, ignore.case = T) &
+          (is.na(lachatToUpload$fieldID) | is.na(lachatToUpload$collectionDate))
+        )
+      ) {
+        
+        showNotification(ui = "at least one unknown missing fieldID, collection date, or flag to omit",
+                         duration = NULL,
+                         closeButton = TRUE,
+                         type = 'error')
+        
+        # 2. check for duplicates, combination of combination of fieldID,
+        # collectionDate, Analyte Name, omit must be unique
+      } else if (
+        
+        anyDuplicated(
+          lachatToUpload[
+            grepl("unknown", lachatToUpload$`Sample Type`, ignore.case = TRUE) &
+            !grepl("BLK", lachatToUpload$`Sample ID`, ignore.case = T), 
+            c("fieldID", "collectionDate", "Analyte Name", "omit")
+            ]
+        )
+        
+      ) {
+        
+        showNotification(ui = "at least one duplicate: fieldID x collectionDate x Analyte Name x omit",
+                         duration = NULL,
+                         closeButton = TRUE,
+                         type = 'error')
+        
+        # 4. call data_upload, which also has a tryCatch, if all checks passed
+      } else {
+        
+        # data_upload(lachatToUpload)
+        
+        showNotification(ui = "gold",
+                         duration = NULL,
+                         closeButton = TRUE,
+                         type = 'error')
+        
+      } # close data validation and call to upload
+      
+    }, error = function(err) {
+      
+      showNotification(ui = "at least one collection date is not in expected date format",
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
       
-      # check for duplicates, combination of combination of fieldID,
-      # collectionDate, Analyte Name, omit must be unique
-    } else if (
-      anyDuplicated(lachatToUpload[grepl("unknown", lachatToUpload$`Sample Type`, ignore.case = TRUE), c("fieldID", "collectionDate", "Analyte Name", "omit")])
-    ) {
-      
-      showNotification(ui = "at least one duplicate: fieldID x collectionDate x Analyte Name x omit",
-                       duration = NULL,
-                       closeButton = TRUE,
-                       type = 'error')
-      
-    } else {
-      
-      # data_upload(lachatToUpload)
-      
-      showNotification(ui = "currently disabled",
-                       duration = NULL,
-                       closeButton = TRUE,
-                       type = 'error')
-      
-    } # close missing fieldID or data if-else
+    }) # close tryCatch
     
   })
   
@@ -593,7 +644,7 @@ server <- function(input, output, session) {
         collectionDate = as.Date(collectionDate),
         omit = as.logical(omit)
       )
-
+    
     # check if any unknowns not flagged to omit are missing a fieldID or Date;
     # notify user if so else upload to database
     if (
@@ -604,17 +655,17 @@ server <- function(input, output, session) {
         (is.na(mergedToUpload$fieldID) | is.na(mergedToUpload$collectionDate))
       )
     ) {
-
+      
       showNotification(ui = "at least one unknown missing fieldID/collection date, or flag to omit",
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
-
+      
       # check for duplicates, combination of combination of fieldID,
       # collectionDate, and Analyte Name must be unique.
       # This check updated 2018-08-27 to remove omit from the comparison.
     } else if (
-
+      
       anyDuplicated(
         mergedToUpload %>%
         filter(
@@ -624,18 +675,18 @@ server <- function(input, output, session) {
         ) %>%
         select(fieldID, collectionDate, `Analyte Name`)
       )
-
+      
     ) {
-
+      
       showNotification(ui = "at least one duplicate: fieldID x collectionDate x Analyte Name x omit",
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
-
+      
     } else {
-
+      
       data_upload(mergedToUpload)
-
+      
     } # close missing fieldID or data if-else
     
   }) # close uploadMetaLachat
@@ -769,9 +820,10 @@ server <- function(input, output, session) {
   #     filter(grepl("unknown", `Sample Type`, ignore.case = TRUE)) %>%
   #     select(samples, collDate, notes, `Sample ID`:sourceFile) }))
   observe(print({ lachatFile() }))
-  observe(print({ metadataFile() }))
-  observe(print({ mergedData() }))
-  observe(print({ mergedWithAnnotations() }))
+  observe(print({ lachatWithAnnotations() }))
+  # observe(print({ metadataFile() }))
+  # observe(print({ mergedData() }))
+  # observe(print({ mergedWithAnnotations() }))
   # observe(print({ str(mergedWithAnnotations()) }))
   # observe(print({ colnames(mergedWithAnnotations()) }))
   # observe(print({ mergedWithAnnotations() %>%

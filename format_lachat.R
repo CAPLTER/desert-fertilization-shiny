@@ -35,7 +35,7 @@ format_lachat <- function(lachatData, fileName) {
       `Sample ID` = gsub("(LATR)(CNTL)", "\\1 \\2", `Sample ID`), # ensure space between LATR & CNTL
       `Detection Date` = as.Date(`Detection Date`),
       `Detection Time` = as.character(`Detection Time`, format = "%H:%M:%S"),
-      idToJoin = `Sample ID`, # duplicate Sample ID for joining
+      # idToJoin = `Sample ID`, # duplicate Sample ID for joining
       sourceFile = basename(fileName) # add name of source data
     )
   
