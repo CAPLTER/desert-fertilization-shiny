@@ -23,13 +23,13 @@ options(shiny.maxRequestSize = 30*1024^2)
 # config
 source('config.R')
 
-# functions
-source('resin_samples.R')
-source('import_metadata.R') 
-source('format_lachat.R')
+# functions and helpers
 source('config.R')
-source('data_upload.R')
+source('helper_query_resin_samples.R')
+source('helper_format_lachat.R')
+source('helper_upload_resin.R')
 source('helper_sql_execution.R')
+# source('import_metadata.R') 
 
 # modules
 source('module_fertilizer.R')
