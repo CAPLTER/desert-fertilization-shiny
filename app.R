@@ -353,8 +353,9 @@ server <- function(input, output, session) {
         anyDuplicated(
           lachatToUpload[
             grepl("unknown", lachatToUpload$`Sample Type`, ignore.case = TRUE) &
-            !grepl("BLK", lachatToUpload$`Sample ID`, ignore.case = T), 
-            c("fieldID", "collectionDate", "Analyte Name", "omit")
+            !grepl("blk", lachatToUpload$`Sample ID`, ignore.case = T) &
+            lachatToUpload$`Sample ID` == FALSE, 
+            c("fieldID", "collectionDate", "Analyte Name")
             ]
         )
         
@@ -507,7 +508,9 @@ server <- function(input, output, session) {
   # observe(print({ colnames(lachatFile()) }))
   # observe(print({ lachatFile() }))
   # observe(print({ lachatWithAnnotations() %>% select(contains(c("field", "id"))) %>% print(n=Inf) }))
-  # observe(print({ str(lachatWithAnnotations()) }))
+  # observe(print({ lachatWithAnnotations() %>% 
+  #     filter(grepl("unknown", `Sample Type`, ignore.case = T)) %>% 
+  #     select(`Sample ID`, omit)}))
   # observe(print({ lachatWithAnnotations() %>% select(contains("field")) }))
   # observe(print({ metadataFile() }))
   # observe(print({ mergedData() }))
