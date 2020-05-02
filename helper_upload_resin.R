@@ -117,7 +117,7 @@ INSERT INTO urbancndep.resin (
       resinDataUploadQuery <- sqlInterpolate(ANSI(),
                                              resinDataUploadBaseQuery,
                                              uploadBatch = batchUploadNext)
-
+      
       # execute insert query
       dbExecute(pg,
                 resinDataUploadQuery)
