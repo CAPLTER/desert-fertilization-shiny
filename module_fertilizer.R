@@ -1,6 +1,7 @@
 #' @title Module: fertilizer
 #'
-#' @description The module fertilizer facilitates...
+#' @description The module fertilizer facilitates entering dates and amounts of
+#'   fertilizer applications.
 
 
 # fertilizer UI -----------------------------------------------------------

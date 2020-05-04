@@ -10,6 +10,7 @@ library(tidyverse)
 library(DBI)
 library(RPostgreSQL)
 library(lubridate)
+library(R6)
 
 
 # options -----------------------------------------------------------------
@@ -25,11 +26,14 @@ source('config.R')
 
 # functions and helpers
 source('config.R')
-source('helper_query_resin_samples.R')
+source('helper_list_resin_samples.R')
 source('helper_format_lachat.R')
 source('helper_upload_resin.R')
 source('helper_sql_execution.R')
-# source('import_metadata.R') 
 
 # modules
 source('module_fertilizer.R')
+source('module_resin_viewer.R')
+
+# generate objects
+ResinViewer1 <- ResinViewer$new(id = "resin_display")

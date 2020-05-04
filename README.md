@@ -17,12 +17,14 @@ relationship between a sample and result, whereas there is a one-to-many
 relationship between samples and result (Lachat, ICP, AQ2, etc.) that is handled
 much better with a sampling event.
 
-Resin Lachat data can be married to metadata using one of two approaches: (1)
-manually enter all metadata details (site, date, notes), or (2) merge metadata
-entered into an Excel file, and manually enter only information not available
-from the merge. As a site and date are required for all Lachat unknowns are
-required for upload, the latter is a far more efficient approach, at least in
-those cases where metadata has already been entered.
+The initial approach allowed for resin Lachat data to be married to metadata
+using one of two approaches: (1) manually enter all metadata details (site,
+date, notes), or (2) merge metadata entered into an Excel file, and manually
+enter only information not available from the merge. The latter approach proved
+highly problematic as sheets containing metadata that were to be merged with
+Lachat output had to be meticulously curated, which was not practical with a
+spreadsheet - also there was not an efficiency gain since the data have to be
+entered at some point so it might as well be with the Lachat file itself.
 
 Fertilizer is a simple upload and viewer.
 
