@@ -1,7 +1,8 @@
-
-# README ------------------------------------------------------------------
-
-# list of all possible resin sample IDs for drop-down list to enter fieldID.
+#' @title helper: list_resin_samples
+#'
+#' @description Generates a list of all possible resin sample identifiers.
+#'   Output is a dataframe with two identical columns, one of which is used
+#'   expressely for joining to uploaded Lachat files.
 
 resinSamplesFrame <- data.frame(
   resinSamples = c(

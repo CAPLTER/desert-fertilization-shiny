@@ -76,35 +76,10 @@ ui <- tagList(
              # resin viewer tab --------------------------------------------------------
              
              tabPanel("resin: data viewer",
-                      fluidPage(
-                        fluidRow( 
-                          column(id = 'leftPanel', 2,
-                                 p("date range:",
-                                   style = "text-align: left; background-color: LightGray; color: black;"),
-                                 br(),
-                                 dateInput("resinDataStartDate",
-                                           "start:",
-                                           format = "yyyy-mm-dd"),
-                                 dateInput("resinDataEndDate",
-                                           "end:",
-                                           format = "yyyy-mm-dd"),
-                                 actionButton(inputId = "filterResinObservations",
-                                              label = "filter",
-                                              style = "text-align:center; border-sytle:solid; border-color:#0000ff;"),
-                                 actionButton(inputId = "clearFilterResinObservations",
-                                              label = "clear filter",
-                                              style = "text-align:center; border-sytle:solid; border-color:#0000ff;"),
-                                 checkboxInput(inputId = "resinUnknownsOnly",
-                                               label = "display only unknowns",
-                                               value = TRUE),
-                                 br()
-                          ), # close the left col
-                          column(id = "resinDataViewerRightPanel", 10,
-                                 DT::dataTableOutput("resinDataOutput")
-                          ) # close the right col
-                        ) # close the row
-                      ) # close the page
+                      ResinViewer1$ui()
+                      # fertilizerUI("fertilizerManager") 
              ), # close 'resin: data viewer' tab panel
+             
              
              # fertilizer tab ----------------------------------------------------------
              
@@ -115,6 +90,8 @@ ui <- tagList(
   ) # close navbar/page
 ) # close tagList
 
+
+# server ------------------------------------------------------------------
 
 server <- function(input, output, session) {
   
@@ -387,114 +364,7 @@ server <- function(input, output, session) {
   
   # resin samples viewer ----------------------------------------------------
   
-  # query discharge data from database for viewing
-  
-  # queryType: default vs parameterized query for observations
-  resinQueryType <- reactiveValues(default = "default")
-  
-  # actionButton filterObservations = parameterized query type
-  observeEvent(input$filterResinObservations, {
-    
-    resinQueryType$default <- "param"
-    
-  })
-  
-  # actionButton clearFilterObservations = default query type
-  observeEvent(input$clearFilterResinObservations, {
-    
-    resinQueryType$default <- "default"
-    
-  })
-  
-  resinData <- reactive({
-    
-    if (resinQueryType$default == "default") {
-      
-      baseResinDataQuery <- '
-      SELECT *
-      FROM
-        urbancndep.resin
-      ORDER BY upload_batch DESC, id ASC;
-      '
-      
-      resinDataQuery  <- sqlInterpolate(ANSI(),
-                                        baseResinDataQuery)
-      
-    } else {
-      
-      baseResinDataQuery <- '
-      SELECT *
-      FROM
-        urbancndep.resin
-      WHERE 
-        collection_date BETWEEN ?start AND ?end
-      ORDER BY upload_batch DESC, id ASC;
-      '
-      
-      resinDataQuery <- sqlInterpolate(
-        ANSI(),
-        baseResinDataQuery,
-        start = as.character(isolate(input$resinDataStartDate)),
-        end = as.character(isolate(input$resinDataEndDate))
-      )
-      
-    }
-    
-    # establish db connection
-    pg <- database_connection()
-    
-    # run query
-    resinDataReturn <- dbGetQuery(pg,
-                                  resinDataQuery)
-    
-    # disconnect from db
-    dbDisconnect(pg)
-    
-    # rather than a simple return, we need to address conditions when there are
-    # not any data that match the search criteria
-    
-    return(resinDataReturn)
-    
-  }) 
-  
-  
-  # render discharge data for viewing
-  output$resinDataOutput <- DT::renderDataTable({
-    
-    # return empty frame and message if empty set
-    if (nrow(resinData()) == 0) {
-      
-      resinToDisplay <- tibble(sample_type = NA)
-      
-      showNotification(ui = "there are not any data in that date range",
-                       duration = 5,
-                       closeButton = TRUE,
-                       type = 'warning')
-      
-    } else {
-      
-      resinToDisplay <- resinData()
-      
-    }
-    
-    if (input$resinUnknownsOnly == TRUE) {
-      
-      resinToDisplay <- resinToDisplay %>% 
-        filter(grepl("Unknown", sample_type, ignore.case = TRUE))
-      
-    } 
-    
-    return(resinToDisplay)    
-    
-  },
-  selection = 'none',
-  escape = FALSE,
-  server = TRUE,
-  options = list(paging = TRUE,
-                 pageLength = 25,
-                 ordering = TRUE,
-                 searching = TRUE),
-  rownames = F) # close output$resinDataOutput
+  ResinViewer1$call()
   
   
   # fertilizer --------------------------------------------------------------
@@ -517,7 +387,7 @@ server <- function(input, output, session) {
   # observe(print({ mergedWithAnnotations() }))
   # observe(print({ str(mergedWithAnnotations()) }))
   # observe(print({ colnames(mergedWithAnnotations()) }))
-  
+  # observe(print({ ResinViewer1 }))
   
 } # close server
 
