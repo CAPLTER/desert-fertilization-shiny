@@ -91,7 +91,14 @@ resinSamplesFrame <- data.frame(
     'WTM.LATR CNTL3',
     'WTM.IP CNTL1',
     'WTM.IP CNTL2',
-    'WTM.IP CNTL3'),
+    'WTM.IP CNTL3',
+    'MCS.IP1.6MONTH',
+    'MCS.IP2.6MONTH',
+    'DBG.IP1.6MONTH',
+    'DBG.IP2.6MONTH',
+    'WTM.IP1.6MONTH',
+    'WTM.IP2.6MONTH'
+    ),
   stringsAsFactors = FALSE
 ) %>% 
   mutate(databaseID = resinSamples)
