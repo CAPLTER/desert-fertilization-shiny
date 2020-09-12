@@ -97,7 +97,10 @@ resinSamplesFrame <- data.frame(
     'DBG.IP1.6MONTH',
     'DBG.IP2.6MONTH',
     'WTM.IP1.6MONTH',
-    'WTM.IP2.6MONTH'
+    'WTM.IP2.6MONTH',
+    'resin.KCl.1',
+    'resin.KCl.2',
+    'resin.KCl.3'
     ),
   stringsAsFactors = FALSE
 ) %>% 
