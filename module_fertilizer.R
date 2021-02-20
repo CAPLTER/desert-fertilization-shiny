@@ -7,9 +7,9 @@
 # fertilizer UI -----------------------------------------------------------
 
 fertilizerUI <- function(id) {
-  
+
   ns <- NS(id)
-  
+
   tagList(
     tags$head(
       tags$style(
@@ -85,22 +85,22 @@ fertilizerUI <- function(id) {
       ) # close the row
     ) # close the page
   ) # close tagList
-  
+
 } # close viewDischargeUI
 
 
 # modify reach patches main -----------------------------------------------
 
 fertilizer <- function(input, output, session) {
-  
+
   fertadd <- reactiveValues(fertAdded = 0)
-  
+
   # query existing fertdata (listener results in refresh when a sample is added)
   fertilizerData <- reactive({
-    
+
     # add listener for adding a fert sample
-    fertadd$fertAdded 
-    
+    fertadd$fertAdded
+
     baseQuery <- '
     SELECT
       s.code AS site_code,
@@ -111,28 +111,28 @@ fertilizer <- function(input, output, session) {
     FROM urbancndep.fertilizer_applications f
     JOIN urbancndep.sites s ON (f.site_id = s.id)
     ORDER BY f.id DESC;'
-    
+
     interpolatedQuery  <- sqlInterpolate(ANSI(),
                                          baseQuery)
-    
+
     # establish db connection
     pg <- database_connection()
-    
+
     fertilizerDataReturn <- dbGetQuery(pg,
                                        interpolatedQuery)
-    
+
     # close database connection
     dbDisconnect(pg)
-    
+
     return(fertilizerDataReturn)
-    
+
   })
-  
+
   # render existing queried fert data
   output$fertilizerDataOutput <- DT::renderDataTable({
-    
+
     fertilizerData()
-    
+
   },
   selection = 'none',
   escape = FALSE,
@@ -144,11 +144,11 @@ fertilizer <- function(input, output, session) {
                  # order = list(list(1, 'desc'), list(0, 'asc'))
   ),
   rownames = F) # close renderDataTable
-  
-  
+
+
   # add fertilizer data
   observeEvent(input$addFertilizerData, {
-    
+
     # upload requies numerous inputs
     req(
       input$fertilizerSite,
@@ -157,7 +157,7 @@ fertilizer <- function(input, output, session) {
       input$phosphorusAmount,
       input$nitrogenPhosphorusAmount
     )
-    
+
     # text site code to numeric equivalent
     if (input$fertilizerSite == 'DBG') {
       numericSiteCode <- 2
@@ -192,7 +192,7 @@ fertilizer <- function(input, output, session) {
     } else  {
       numericSiteCode <- NULL
     }
-    
+
     baseFertilizerInsertQuery <- '
     INSERT INTO urbancndep.fertilizer_applications
     (
@@ -210,7 +210,7 @@ fertilizer <- function(input, output, session) {
       ?fertP,
       ?fertNP
     );'
-    
+
     # build query from base and input parameters
     fertilizerInsertQuery <- sqlInterpolate(ANSI(),
                                             baseFertilizerInsertQuery,
@@ -219,62 +219,62 @@ fertilizer <- function(input, output, session) {
                                             fertN = input$nitrogenAmount,
                                             fertP = input$phosphorusAmount,
                                             fertNP = input$nitrogenPhosphorusAmount)
-    
+
     # establish db connection
     pg <- database_connection()
-    
+
     tryCatch({
-      
+
       dbGetQuery(pg, "BEGIN TRANSACTION")
-      
+
       # execute insert query
       dbExecute(pg,
                 fertilizerInsertQuery)
-      
-      
+
+
       dbCommit(pg)
-      
+
       # change listener state when adding a record
       fertadd$fertAdded <- isolate(fertadd$fertAdded + 1)
-      
+
     }, warning = function(warn) {
-      
+
       showNotification(ui = paste("there is a warning:  ", warn),
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'warning')
-      
+
       print(paste("WARNING: ", warn))
-      
+
     }, error = function(err) {
-      
+
       showNotification(ui = paste("there was an error:  ", err),
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
-      
+
       print(paste("ERROR: ", err))
       print("ROLLING BACK TRANSACTION")
-      
+
       dbRollback(pg)
-      
+
     }) # close try catch
-    
+
     # close database connection
     dbDisconnect(pg)
-    
+
   })
-  
-  
+
+
   # debugging: module level -------------------------------------------------
-  
+
   ############# START debugging
   # observe(print({ queryType }))
   # observe(print({ queryType$default }))
   # observe(print({ input$ReachPatchs_cell_edit }))
   ############# END debugging
-  
-  
+
+
   # close module fertilizer -------------------------------------------------
-  
-} # close module fertilizer 
+
+} # close module fertilizer
