@@ -5,75 +5,103 @@
 #'   close database connections to facilitate either a SQL query to return an
 #'   objet or execute a statement.
 #'
-#'   
+#'
 run_interpolated_query <- function(interpolatedQuery) {
-  
+
+  # establish db connection
+  pg <- database_connection()
+
+  # close db connection after function call exits
+  on.exit(dbDisconnect(pg))
+
   tryCatch({
-    
-    queryResult <- dbGetQuery(desfertPool,
-                              interpolatedQuery)
-    
+
+    queryResult <- dbGetQuery(
+      pg,
+      interpolatedQuery)
+
     return(queryResult)
-    
+
   }, warning = function(warn) {
-    
-    showNotification(ui = paste("there is a warning:  ", warn),
-                     duration = NULL,
-                     closeButton = TRUE,
-                     type = 'warning')
-    
+
+    showNotification(
+      ui = paste("there is a warning:  ", warn),
+      duration = NULL,
+      closeButton = TRUE,
+      type = "warning")
+
     print(paste("WARNING: ", warn))
-    
+
   }, error = function(err) {
-    
-    showNotification(ui = paste("there was an error:  ", err),
-                     duration = NULL,
-                     closeButton = TRUE,
-                     type = 'error')
-    
+
+    showNotification(
+      ui = paste("there was an error:  ", err),
+      duration = NULL,
+      closeButton = TRUE,
+      type = "error")
+
     print(paste("ERROR: ", err))
-    print("ROLLING BACK TRANSACTION")
-    
+    print("transaction not executed")
+
   }) # close try catch
-  
-} # close run_interpolated_query 
+
+  # close database connection
+  dbDisconnect(pg)
+
+} # close run_interpolated_query
 
 
 run_interpolated_execution <- function(interpolatedQuery) {
-  
+
+  # establish db connection
+  pg <- database_connection()
+
+  # close db connection after function call exits
+  on.exit(dbDisconnect(pg))
+
   tryCatch({
-    
-    poolWithTransaction(desfertPool, function(conn) {
-      dbExecute(conn,
-                interpolatedQuery)
-    })    
-    
-    showNotification(ui = "success",
-                     duration = 5,
-                     closeButton = TRUE,
-                     type = 'message')
-    
+
+    dbGetQuery(pg, "BEGIN TRANSACTION")
+
+    # execute query
+    dbExecute(
+      pg,
+      interpolatedQuery)
+
+    dbCommit(pg)
+
+    showNotification(
+      ui = "action committed",
+      duration = 3,
+      closeButton = TRUE,
+      type = "message")
+
   }, warning = function(warn) {
-    
-    showNotification(ui = paste("there is a warning:  ", warn),
-                     duration = NULL,
-                     closeButton = TRUE,
-                     type = 'warning')
-    
+
+    showNotification(
+      ui = paste("there is a warning:  ", warn),
+      duration = NULL,
+      closeButton = TRUE,
+      type = "warning")
+
     print(paste("WARNING: ", warn))
-    
+
   }, error = function(err) {
-    
-    showNotification(ui = paste("there was an error:  ", err),
-                     duration = NULL,
-                     closeButton = TRUE,
-                     type = 'error')
-    
+
+    showNotification(
+      ui = paste("there was an error:  ", err),
+      duration = NULL,
+      closeButton = TRUE,
+      type = "error")
+
     print(paste("ERROR: ", err))
     print("ROLLING BACK TRANSACTION")
-    
+
+    dbRollback(pg)
+
   }) # close try catch
-  
-} # close run_interpolated_execution 
 
+  # close database connection
+  dbDisconnect(pg)
 
+} # close run_interpolated_execution

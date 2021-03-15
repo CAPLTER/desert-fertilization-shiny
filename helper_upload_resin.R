@@ -87,76 +87,76 @@ INSERT INTO urbancndep.resin (
   FROM
     urbancndep.resin_temp
 );'
-  
-  
+
+
   # main function -----------------------------------------------------------
-  
+
   data_upload <- function(dataToUpload) {
-    
+
     # establish db connection
     pg <- database_connection()
-    
+
     # get current batch number and advance
     batchUploadCurrent <- dbGetQuery(pg, 'SELECT MAX(upload_batch) AS max FROM urbancndep.resin;')
     batchUploadNext <- as.numeric(batchUploadCurrent$max) + 1
-    
+
     tryCatch({
-      
+
       dbGetQuery(pg, "BEGIN TRANSACTION")
-      
+
       # write new samples to resin_temp
-      if (dbExistsTable(pg, c('urbancndep', 'resin_temp'))) { 
+      if (dbExistsTable(pg, c('urbancndep', 'resin_temp'))) {
         dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
       }
-      
+
       dbWriteTable(pg, c('urbancndep', 'resin_temp'),
                    value = dataToUpload,
                    row.names = F)
-      
+
       # build the query, including next batch number
       resinDataUploadQuery <- sqlInterpolate(ANSI(),
                                              resinDataUploadBaseQuery,
                                              uploadBatch = batchUploadNext)
-      
+
       # execute insert query
       dbExecute(pg,
                 resinDataUploadQuery)
-      
+
       # clean up
       dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
-      
+
       dbCommit(pg)
-      
+
       showNotification(ui = "successfully uploaded",
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'message',
                        action = a(href = "javascript:location.reload();", "reload the page"))
-      
+
     }, warning = function(warn) {
-      
+
       showNotification(ui = paste("there is a warning:", warn),
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'warning')
-      
+
       print(paste("WARNING:", warn))
-      
+
     }, error = function(err) {
-      
+
       showNotification(ui = paste("there was an error:", err),
                        duration = NULL,
                        closeButton = TRUE,
                        type = 'error')
-      
+
       print(paste("ERROR:", err))
       print("ROLLING BACK TRANSACTION")
-      
+
       dbRollback(pg)
-      
+
     }) # close try catch
-    
+
     # close database connection
     dbDisconnect(pg)
-    
+
   } # close function
