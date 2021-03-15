@@ -20,7 +20,7 @@ query_cover_types <- function() {
       cover_types.cover_type_id
     FROM urbancndep.cover_types
     WHERE
-      cover_types.cover_type ~~ ANY('{%2017%, %2018%, %2019%, sampled}') AND
+      cover_types.cover_type ~~ ANY('{%2017%, %2018%, %2019%, sampled}') OR
       cover_types.cover_type ~~* '%comparable%'
   )
   ORDER BY

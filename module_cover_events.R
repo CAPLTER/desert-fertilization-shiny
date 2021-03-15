@@ -57,7 +57,7 @@ cover_events_UI <- function(id) {
           selectizeInput(
             inputId = ns("new_cover_event_collector"),
             label = "collector (required)",
-            choices = c("QS", "WM"),
+            choices = c("QS", "WM", "TO"),
             selected = c("QS", "WM"),
             multiple = TRUE
             ),
