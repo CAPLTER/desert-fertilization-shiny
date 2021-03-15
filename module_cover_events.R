@@ -57,8 +57,8 @@ cover_events_UI <- function(id) {
           selectizeInput(
             inputId = ns("new_cover_event_collector"),
             label = "collector (required)",
-            choices = c("QS", "MG"),
-            selected = c("QS", "MG"),
+            choices = c("QS", "WM"),
+            selected = c("QS", "WM"),
             multiple = TRUE
             ),
           br(),
@@ -260,6 +260,9 @@ cover_events_server <- function(input, output, session) {
     # establish db connection
     pg <- database_connection()
 
+    # close db connection after function call exits
+    on.exit(dbDisconnect(pg))
+
     # because we want multiple processes wrapped in a tryCatch, we cannot use
     # run_interpolated_execution()
 
@@ -327,13 +330,14 @@ cover_events_server <- function(input, output, session) {
 
       # reset values of input form
 
-      updateSelectizeInput(
-        session,
-        inputId = "new_cover_event_plot",
-        label = "plot (required)",
-        choices = cover_sites_plots["plot_id"],
-        selected = NULL
-      )
+      # updateSelectizeInput(
+      #   session,
+      #   inputId = "new_cover_event_plot",
+      #   label = "plot (required)",
+      #   choices = cover_sites_plots["plot_id"],
+      #   selected = NULL
+      # )
+
       updateSelectizeInput(
         session,
         inputId = "new_cover_event_position",
@@ -341,6 +345,7 @@ cover_events_server <- function(input, output, session) {
         choices = c("P", "IP"),
         selected = NULL
       )
+
       updateSelectizeInput(
         session,
         inputId = "new_cover_event_subplot",
@@ -348,12 +353,14 @@ cover_events_server <- function(input, output, session) {
         choices = c(1, 2),
         selected = NULL
       )
-      updateDateInput(
-        session,
-        inputId = "new_cover_event_date",
-        label = "collection date (required)",
-        value = Sys.Date()
-      )
+
+      # updateDateInput(
+      #   session,
+      #   inputId = "new_cover_event_date",
+      #   label = "collection date (required)",
+      #   value = Sys.Date()
+      # )
+
       updateSelectizeInput(
         session,
         inputId = "new_cover_event_collector",

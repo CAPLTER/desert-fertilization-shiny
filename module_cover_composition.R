@@ -163,7 +163,8 @@ cover_composition <- function(input, output, session, cover_event_ID) {
             label = "amount",
             value = NULL,
             min = 0,
-            max = 1
+            max = 1,
+            step = 0.1
             )
           ),
           column(
@@ -174,7 +175,12 @@ cover_composition <- function(input, output, session, cover_event_ID) {
               label = "add new"
             )
           ) # close last column
-        ) # close fluidRow
+        ), # close fluidRow
+      tags$br(),
+      tags$br(),
+      tags$br(),
+      tags$br(),
+      tags$br()
       ) # close tag list
 
   })

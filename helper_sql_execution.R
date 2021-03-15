@@ -11,6 +11,9 @@ run_interpolated_query <- function(interpolatedQuery) {
   # establish db connection
   pg <- database_connection()
 
+  # close db connection after function call exits
+  on.exit(dbDisconnect(pg))
+
   tryCatch({
 
     queryResult <- dbGetQuery(
@@ -52,6 +55,9 @@ run_interpolated_execution <- function(interpolatedQuery) {
 
   # establish db connection
   pg <- database_connection()
+
+  # close db connection after function call exits
+  on.exit(dbDisconnect(pg))
 
   tryCatch({
 

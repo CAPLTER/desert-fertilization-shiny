@@ -1,9 +1,14 @@
 ## desert-fertilization-shiny
 
-### shiny app for viewing and loading desert fertilization data
+### shiny app for viewing and loading selected desert fertilization data
 
-Desert Fertilization application to address (1) current, backlog, and future
-uploads of resin data, and (2) fertilizer applications.
+Desert Fertilization application to address:
+
+- resin data
+- fertilizer applications
+- annuals community composition
+
+#### resin
 
 The approach taken here for the resin data is to upload the raw lachat data and
 marry sample metadata directly to the machine output. This is different than,
@@ -26,12 +31,41 @@ Lachat output had to be meticulously curated, which was not practical with a
 spreadsheet - also there was not an efficiency gain since the data have to be
 entered at some point so it might as well be with the Lachat file itself.
 
+#### fertilizer
+
 Fertilizer is a simple upload and viewer.
 
 issues:
+
 1. cannot get dateInput type for shinyInput value
 
+#### annuals
+
+
 #### notes
+
+##### leaked database connections
+
+That we are unable to use pool with this app (on account of an unidentifiable
+leaked pool object) is a problem. The general approach to working without pool
+is to establish a DB connection in advance of each query then close the
+connection at the close of the query. However, `dbDisconnect()` seemingly was
+not in fact closing the connection and the app was plagued by too many open
+connections in very short order. Two approaches were taken to address this.
+First, a function to close all open connections when the app is closed was
+added to app.R. This addition is helpful but while that ensures that all
+connections are close when the app is terminated, it does not help with open
+connections while the app is in use. To address open connections while in use,
+a call to close apps on exit was added at each point that a connection was
+established. The combination of these two appraoches seems to have addressed
+the issue.
+
+```
+# close db connection after function call exits
+on.exit(dbDisconnect(pg))
+```
+
+##### triggers on resin data
 
 Adding after having created the table, fields for `created_at` and `updated_at`,
 the latter requiring a function and trigger combination. Note here the
@@ -57,11 +91,13 @@ FOR EACH ROW
 EXECUTE PROCEDURE urbancndep.trigger_set_timestamp();
 ```
 
+##### unique resin events
+
 Initial approach was to have restricted (in the application and database)
 duplicate combinations of fieldID, collectionDate, Analyte Name, and omit.
-However, this was not tenable in light of Lachat runs having multiple seasons so
-the constraint was limited to duplicate combinations of fieldID, collectionDate,
-and Analyte Name in the application only.
+However, this was not tenable in light of Lachat runs having multiple seasons
+so the constraint was limited to duplicate combinations of fieldID,
+collectionDate, and Analyte Name in the application only.
 
 ```sql
 ALTER TABLE urbancndep.resin DROP CONSTRAINT resin_field_id_collection_date_analyte_name_omit_key;

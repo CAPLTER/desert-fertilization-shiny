@@ -1,8 +1,7 @@
 #' @title helper: identify key values for cover events and types
 #'
-#' @description Generates a list of all possible resin sample identifiers.
-#'   Output is a dataframe with two identical columns, one of which is used
-#'   expressely for joining to uploaded Lachat files.
+#' @description Generates lists of (1) all possible cover types that are in
+#'  use, and (2) all unique sites and plots.
 
 
 # cover types ------------------------------------------------------------------
@@ -21,7 +20,8 @@ query_cover_types <- function() {
       cover_types.cover_type_id
     FROM urbancndep.cover_types
     WHERE
-      cover_types.cover_type ~~ ANY('{%2017%, %2018%, %2019%, sampled}')
+      cover_types.cover_type ~~ ANY('{%2017%, %2018%, %2019%, sampled}') AND
+      cover_types.cover_type ~~* '%comparable%'
   )
   ORDER BY
     cover_types.cover_category,
@@ -54,7 +54,7 @@ query_cover_sites_plots <- function() {
   JOIN urbancndep.plots ON (cover_events.plot = plots.id)
   JOIN urbancndep.sites ON (sites.id = plots.site_id)
   WHERE
-    cover_events.year >= 2020
+    cover_events.year >= 2019
   ORDER BY
     plot_id ;
   "
