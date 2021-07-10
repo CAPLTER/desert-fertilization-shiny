@@ -1,4 +1,5 @@
-# database config
+# configuration
+config.yml
 
 # History files
 .Rhistory
