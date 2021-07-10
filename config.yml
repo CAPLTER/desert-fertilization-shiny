@@ -1,0 +1,15 @@
+default:
+  dbname: "local"
+  host: "local"
+  user: "local"
+  password: !expr getPass::getPass(msg = "enter password ")
+
+rc_dev:
+  dbname: "development"
+  host: "development"
+  user: "development"
+  password: "development"
+
+rc_prod:
+  inherits: rc_dev
+  dbname: "production"
