@@ -45,4 +45,4 @@ ResinViewer1 <- ResinViewer$new(id = "resin_display")
 # other configurations ----------------------------------------------------
 
 # initials of annuals survey crew
-annuals_comp_surveyors <- c("QS", "MG")
+annuals_comp_surveyors <- c("QS", "MG", "WM", "JB")

@@ -55,10 +55,9 @@ cover_events_UI <- function(id) {
             format = "yyyy-mm-dd"
             ),
           selectizeInput(
-            inputId = ns("new_cover_event_collector"),
-            label = "collector (required)",
-            choices = c("QS", "WM", "TO"),
-            selected = c("QS", "WM"),
+            inputId  = ns("new_cover_event_collector"),
+            label    = "collector (required)",
+            choices  = annuals_comp_surveyors,
             multiple = TRUE
             ),
           br(),
@@ -363,29 +362,30 @@ cover_events_server <- function(input, output, session) {
 
       updateSelectizeInput(
         session,
-        inputId = "new_cover_event_collector",
-        label = "collector (required)",
-        choices = annuals_comp_surveyors,
-        selected = annuals_comp_surveyors
+        inputId  = "new_cover_event_collector",
+        label    = "collector (required)",
+        choices  = annuals_comp_surveyors
       )
 
     }, warning = function(warn) {
 
       showNotification(
-        ui = paste("there is a warning:  ", warn),
-        duration = NULL,
+        ui          = paste("there is a warning:  ", warn),
+        duration    = NULL,
         closeButton = TRUE,
-        type = "warning")
+        type        = "warning"
+      )
 
       print(paste("WARNING: ", warn))
 
     }, error = function(err) {
 
       showNotification(
-        ui = paste("there was an error:  ", err),
-        duration = NULL,
+        ui          = paste("there was an error:  ", err),
+        duration    = NULL,
         closeButton = TRUE,
-        type = "error")
+        type        = "error"
+      )
 
       print(paste("ERROR: ", err))
       print("ROLLING BACK TRANSACTION")
