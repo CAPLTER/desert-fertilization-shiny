@@ -45,28 +45,28 @@ shinyInput <- function(reactiveObject, FUN, len, id, ...) {
 }
 
 
-# shinyInputFlex <- function(reactiveObject, FUN, len, id, ...) {
-#     inputs <- character(len)
-#     for (i in seq_len(len)) {
-#         ident = as.character(reactiveObject %>% select(id) %>% slice(i:i))
-#         inputs[i] <- as.character(FUN(paste0(ident), ...))
-#     }
-#     inputs
-# }
-# 
-# 
-# shinyInputOther <- function(FUN, len, id, ...) {
-#     inputs = character(len)
-#     for (i in seq_len(len)) {
-#         inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
-#     }
-#     inputs
-# }
-# 
-# 
-# shinyValue <- function(id, len) {
-#     unlist(lapply(seq_len(len), function(i) {
-#         value = input[[paste0(id, i)]]
-#         if (is.null(value)) NA else value
-#     }))
-# }
+shinyInputFlex <- function(reactiveObject, FUN, len, id, ...) {
+    inputs <- character(len)
+    for (i in seq_len(len)) {
+        ident = as.character(reactiveObject %>% select(id) %>% slice(i:i))
+        inputs[i] <- as.character(FUN(paste0(ident), ...))
+    }
+    inputs
+}
+
+
+shinyInputOther <- function(FUN, len, id, ...) {
+    inputs = character(len)
+    for (i in seq_len(len)) {
+        inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+    }
+    inputs
+}
+
+
+shinyValue <- function(id, len) {
+    unlist(lapply(seq_len(len), function(i) {
+        value = input[[paste0(id, i)]]
+        if (is.null(value)) NA else value
+    }))
+}

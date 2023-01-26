@@ -1,8 +1,11 @@
-#' @title helper: list_resin_samples
+#' @title helper: generate a list of all possible resin sample identifiers
 #'
 #' @description Generates a list of all possible resin sample identifiers.
-#'   Output is a dataframe with two identical columns, one of which is used
-#'   expressely for joining to uploaded Lachat files.
+#' Output is a dataframe with two identical columns, one of which is used
+#' expressely for joining to uploaded Lachat files.
+#'
+#' @export
+#'
 
 resinSamplesFrame <- data.frame(
   resinSamples = c(
@@ -103,5 +106,5 @@ resinSamplesFrame <- data.frame(
     'resin.KCl.3'
     ),
   stringsAsFactors = FALSE
-) %>% 
-  mutate(databaseID = resinSamples)
+  ) |>
+dplyr::mutate(databaseID = resinSamples)

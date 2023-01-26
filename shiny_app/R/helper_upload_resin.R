@@ -97,66 +97,71 @@ INSERT INTO urbancndep.resin (
     pg <- database_connection()
 
     # get current batch number and advance
-    batchUploadCurrent <- dbGetQuery(pg, 'SELECT MAX(upload_batch) AS max FROM urbancndep.resin;')
+    batchUploadCurrentQuery <- 'SELECT MAX(upload_batch) AS max FROM urbancndep.resin;'
+    batchUploadCurrent <- run_interpolated_query(batchUploadCurrentQuery)
+    # batchUploadCurrent <- dbGetQuery(pg, 'SELECT MAX(upload_batch) AS max FROM urbancndep.resin;')
     batchUploadNext <- as.numeric(batchUploadCurrent$max) + 1
 
-    tryCatch({
+    message(batchUploadNext)
 
-      dbGetQuery(pg, "BEGIN TRANSACTION")
 
-      # write new samples to resin_temp
-      if (dbExistsTable(pg, c('urbancndep', 'resin_temp'))) {
-        dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
-      }
+    # tryCatch({
 
-      dbWriteTable(pg, c('urbancndep', 'resin_temp'),
-                   value = dataToUpload,
-                   row.names = F)
+    #   dbGetQuery(pg, "BEGIN TRANSACTION")
 
-      # build the query, including next batch number
-      resinDataUploadQuery <- sqlInterpolate(ANSI(),
-                                             resinDataUploadBaseQuery,
-                                             uploadBatch = batchUploadNext)
+    #   # write new samples to resin_temp
+    #   if (dbExistsTable(pg, c('urbancndep', 'resin_temp'))) {
+    #     dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
+    #   }
 
-      # execute insert query
-      dbExecute(pg,
-                resinDataUploadQuery)
+    #   dbWriteTable(pg, c('urbancndep', 'resin_temp'),
+    #                value = dataToUpload,
+    #                row.names = F)
 
-      # clean up
-      dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
+    #   # build the query, including next batch number
+    #   resinDataUploadQuery <- sqlInterpolate(ANSI(),
+    #                                          resinDataUploadBaseQuery,
+    #                                          uploadBatch = batchUploadNext)
 
-      dbCommit(pg)
+    #   # execute insert query
+    #   dbExecute(pg,
+    #             resinDataUploadQuery)
 
-      showNotification(ui = "successfully uploaded",
-                       duration = NULL,
-                       closeButton = TRUE,
-                       type = 'message',
-                       action = a(href = "javascript:location.reload();", "reload the page"))
+    #   # clean up
+    #   dbRemoveTable(pg, c('urbancndep', 'resin_temp'))
 
-    }, warning = function(warn) {
+    #   dbCommit(pg)
 
-      showNotification(ui = paste("there is a warning:", warn),
-                       duration = NULL,
-                       closeButton = TRUE,
-                       type = 'warning')
+    #   showNotification(ui = "successfully uploaded",
+    #                    duration = NULL,
+    #                    closeButton = TRUE,
+    #                    type = 'message',
+    #                    action = a(href = "javascript:location.reload();", "reload the page"))
 
-      print(paste("WARNING:", warn))
+    # }, warning = function(warn) {
 
-    }, error = function(err) {
+    #   showNotification(ui = paste("there is a warning:", warn),
+    #                    duration = NULL,
+    #                    closeButton = TRUE,
+    #                    type = 'warning')
 
-      showNotification(ui = paste("there was an error:", err),
-                       duration = NULL,
-                       closeButton = TRUE,
-                       type = 'error')
+    #   print(paste("WARNING:", warn))
 
-      print(paste("ERROR:", err))
-      print("ROLLING BACK TRANSACTION")
+    # }, error = function(err) {
 
-      dbRollback(pg)
+    #   showNotification(ui = paste("there was an error:", err),
+    #                    duration = NULL,
+    #                    closeButton = TRUE,
+    #                    type = 'error')
 
-    }) # close try catch
+    #   print(paste("ERROR:", err))
+    #   print("ROLLING BACK TRANSACTION")
 
-    # close database connection
-    dbDisconnect(pg)
+    #   dbRollback(pg)
+
+    # }) # close try catch
+
+    # # close database connection
+    # dbDisconnect(pg)
 
   } # close function
