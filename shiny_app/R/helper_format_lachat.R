@@ -14,31 +14,31 @@
 #' @export
 #'
 
-# libraries ---------------------------------------------------------------
-
-# library(zoo)
-
-
-# main function -----------------------------------------------------------
-
 format_lachat <- function(
-  lachatData,
-  fileName
+  lachat_data,
+  file_name
   ) {
-  
-  lachatData <- lachatData |>
-    dplyr::mutate(
-      `Sample ID`      = gsub("\\.$", "", `Sample ID`),                 # remove any trailing dots
-      `Sample ID`      = gsub("LATR.CNTL", "LATR CNTL", `Sample ID`),   # remove intermittent "." between LATR & CTRL
-      `Sample ID`      = gsub("IP.CNTL", "IP CNTL", `Sample ID`),       # remove intermittent "." between IP & CTRL
-      `Sample ID`      = gsub("LATR\\.", "LATR", `Sample ID`),          # remove intermittent "." between LATR & replicate no.
-      `Sample ID`      = gsub("(LATR)(CNTL)", "\\1 \\2", `Sample ID`),  # ensure space between LATR & CNTL
-      `Detection Date` = as.Date(`Detection Date`),
-      `Detection Time` = as.character(`Detection Time`, format = "%H:%M:%S"),
-      idToJoin         = `Sample ID`,       # duplicate Sample ID for joining
-      sourceFile       = basename(fileName) # add name of source data
-    )
-  
-  return(lachatData)
-  
+
+  # format column names - moved to janitor
+  # colnames(lachat_data) <- tolower(colnames(lachat_data))             # colnames to lowercase
+  # colnames(lachat_data) <- gsub("\\.", "\\_", colnames(lachat_data))  # replace dots with underscores
+  # colnames(lachat_data) <- gsub(" ", "\\_", colnames(lachat_data))    # replace spaces with underscores
+
+  # format data in columns
+  lachat_data_fmt <- lachat_data |>
+  janitor::clean_names() |>
+  dplyr::mutate(
+    sample_id      = gsub("\\.$", "", sample_id),                 # remove any trailing dots
+    sample_id      = gsub("LATR.CNTL", "LATR CNTL", sample_id),   # remove intermittent "." between LATR & CTRL
+    sample_id      = gsub("IP.CNTL", "IP CNTL", sample_id),       # remove intermittent "." between IP & CTRL
+    sample_id      = gsub("LATR\\.", "LATR", sample_id),          # remove intermittent "." between LATR & replicate no.
+    sample_id      = gsub("(LATR)(CNTL)", "\\1 \\2", sample_id),  # ensure space between LATR & CNTL
+    detection_date = as.character(detection_date),
+    detection_time = as.character(detection_time, format = "%H:%M:%S"),
+    # idToJoin       = sample_id,                                   # duplicate Sample ID for joining
+    sourcefile     = basename(file_name)                          # add name of source data
+  )
+
+  return(lachat_data_fmt)
+
 }
