@@ -9,7 +9,8 @@ server <- function(input, output, session) {
 
   fertilizer("fertilizer")
   upload_resin("upload_resin", tab = tabID)
-  ResinViewer1$call()
+  chemistry_data("chemistry_data")
+  # ResinViewer1$call()
 
   callModule(module = cover_events_server,
     id = "annuals_cover")

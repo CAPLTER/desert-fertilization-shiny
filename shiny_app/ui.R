@@ -19,9 +19,14 @@ ui <- shiny::tagList(
       ),
 
     shiny::tabPanel(
-      title = "resin: data",
-      ResinViewer1$ui()
+      title = "chemistry data",
+      chemistry_dataUI("chemistry_data")
       ),
+
+    # shiny::tabPanel(
+    #   title = "resin: data",
+    #   ResinViewer1$ui()
+    #   ),
 
     shiny::tabPanel(
       title = "annuals cover",
