@@ -57,7 +57,7 @@
 #readme_box	shiny_app/www/custom.css	/^#readme_box {$/;"	i
 #samplesLeftPanel	shiny_app/www/custom.css	/^#samplesLeftPanel   { background: #D3D3D3; color: #484848; }$/;"	i
 .con	shiny_app/R/helper_insert_fertilizer.R	/^    .con = DBI::ANSI()$/;"	v	function:add_fertilizer
-.con	shiny_app/R/helper_insert_raw.R	/^        .con = DBI::ANSI()$/;"	v	function:build_insert_raw_query
+.con	shiny_app/R/helper_insert_raw.R	/^      .con = DBI::ANSI()$/;"	v	function:build_insert_raw_query
 .con	shiny_app/R/helper_query_chn.R	/^    .con = DBI::ANSI()$/;"	v	function:query_chn
 .con	shiny_app/R/helper_query_chn_dates.R	/^        .con = DBI::ANSI()$/;"	v	function:query_annuals_dates
 .con	shiny_app/R/helper_query_chn_dates.R	/^    .con = DBI::ANSI()$/;"	v	function:query_stems_dates
@@ -73,6 +73,7 @@
 .selectize-dropdown	shiny_app/www/custom.css	/^.selectize-dropdown {$/;"	c
 .selectize-input	shiny_app/www/custom.css	/^.selectize-input {$/;"	c
 .shiny-notification	shiny_app/www/custom.css	/^.shiny-notification {$/;"	c
+CHN	README.md	/^#### CHN$/;"	t	subsection:desert-fertilization-shiny""shiny app for viewing and loading selected desert fertilization data
 Comment	shiny_app/R/module_chn_upload.R	/^        Comment = gsub(",", ";", Comment),$/;"	v	function:upload_chn.anonFunc872120020100
 ResinViewer	archive/module_resin_viewer.R	/^ResinViewer <- R6Class("ResinViewer", list($/;"	c
 ResinViewer1	archive/module_resin_viewer.R	/^ResinViewer1 <- ResinViewer$new(id = "resin_display")$/;"	g
@@ -163,7 +164,6 @@ bSort	shiny_app/R/module_resin_upload.R	/^      bSort           = FALSE,$/;"	g
 bSort	shiny_app/R/module_resin_upload.R	/^      bSort           = FALSE,$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options
 baseQuery	shiny_app/R/module_cover_composition.R	/^    "$/;"	v	function:cover_composition
 baseQuery	shiny_app/R/module_cover_events.R	/^    "$/;"	v	function:cover_events_server.delete_cover_event
-base_query	shiny_app/R/helper_insert_raw.R	/^    base_query <- NULL$/;"	v	function:build_insert_raw_query
 base_query	shiny_app/R/helper_query_cover_types.R	/^  "$/;"	v	function:query_cover_sites_plots
 base_query	shiny_app/R/helper_query_cover_types.R	/^  "$/;"	v	function:query_cover_types
 base_query	shiny_app/R/module_cover_composition.R	/^    "$/;"	v	function:cover_composition
@@ -359,7 +359,6 @@ lachat_data_fmt	shiny_app/R/helper_format_lachat.R	/^  lachat_data_fmt <- lachat
 lachat_file_type	shiny_app/R/module_resin_upload.R	/^      lachat_file_type <- tools::file_ext(input$lachat_file$datapath)$/;"	v	function:upload_resin.anonFunc6638aa2a0100
 lachat_formatted	shiny_app/R/module_resin_upload.R	/^      lachat_formatted <- format_lachat($/;"	v	function:upload_resin.anonFunc6638aa2a0100
 lachat_import	shiny_app/R/module_resin_upload.R	/^          lachat_import <- readxl::read_excel(input$lachat_file$datapath)$/;"	v	function:upload_resin.anonFunc6638aa2a0100
-leaked database connections	README.md	/^##### leaked database connections$/;"	T	subsubsection:desert-fertilization-shiny""shiny app for viewing and loading selected desert fertilization data""notes
 listen_cover_composition	shiny_app/R/module_cover_composition.R	/^  listen_cover_composition <- reactiveValues(db_version = 0)$/;"	v	function:cover_composition
 listen_cover_events	shiny_app/R/module_cover_events.R	/^  listen_cover_events <- reactiveValues(db_version = 0)$/;"	v	function:cover_events_server
 listener_init	shiny_app/R/helper_listener_utilities.R	/^listener_init <- function(name, session = shiny::getDefaultReactiveDomain()) {$/;"	f
@@ -410,7 +409,7 @@ pageLength	shiny_app/R/module_fertilizer.R	/^      pageLength    = 50,$/;"	n	lis
 pageLength	shiny_app/R/module_resin_upload.R	/^      pageLength      = 5,      # scroller$/;"	g
 pageLength	shiny_app/R/module_resin_upload.R	/^      pageLength      = 50,     # scroller$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options
 parameterized_query	shiny_app/R/helper_insert_fertilizer.R	/^  parameterized_query <- glue::glue_sql("$/;"	v	function:add_fertilizer
-parameterized_query	shiny_app/R/helper_insert_raw.R	/^    parameterized_query <- glue::glue_sql("$/;"	v	function:build_insert_raw_query
+parameterized_query	shiny_app/R/helper_insert_raw.R	/^    parameterized_query <- glue::glue_sql('$/;"	v	function:build_insert_raw_query
 parameterized_query	shiny_app/R/helper_query_chn.R	/^  parameterized_query <- glue::glue_sql('$/;"	v	function:query_chn
 parameterized_query	shiny_app/R/helper_query_chn_dates.R	/^  parameterized_query <- glue::glue_sql("$/;"	v	function:query_annuals_dates
 parameterized_query	shiny_app/R/helper_query_chn_dates.R	/^  parameterized_query <- glue::glue_sql("$/;"	v	function:query_stems_dates
@@ -491,7 +490,7 @@ scroller	shiny_app/R/module_chn_upload.R	/^      scroller        = TRUE,   # scr
 scroller	shiny_app/R/module_chn_upload.R	/^      scroller        = TRUE,   # scroller$/;"	n	list:upload_chn.anonFunc872120020100.options
 scroller	shiny_app/R/module_resin_upload.R	/^      scroller        = TRUE,   # scroller$/;"	g
 scroller	shiny_app/R/module_resin_upload.R	/^      scroller        = TRUE,   # scroller$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options
-searching	shiny_app/R/module_chemistry_data.R	/^      searching     = TRUE #,$/;"	n	list:chemistry_data.anonFunc9bcd70560100.options
+searching	shiny_app/R/module_chemistry_data.R	/^      searching     = FALSE #,$/;"	n	list:chemistry_data.anonFunc9bcd70560100.options
 searching	shiny_app/R/module_chn_upload.R	/^      searching       = FALSE,$/;"	g
 searching	shiny_app/R/module_chn_upload.R	/^      searching       = FALSE,$/;"	n	list:upload_chn.anonFunc872120020100.options
 searching	shiny_app/R/module_fertilizer.R	/^      searching     = FALSE$/;"	n	list:fertilizer.anonFuncdb0fb5250100.options
@@ -558,7 +557,6 @@ title	shiny_app/ui.R	/^      title = "chn: upload",$/;"	g
 title	shiny_app/ui.R	/^      title = "fertilizer",$/;"	g
 title	shiny_app/ui.R	/^      title = "resin: upload",$/;"	g
 title	shiny_app/ui.R	/^    title = "desert fertilization",$/;"	g
-triggers on resin data	README.md	/^##### triggers on resin data$/;"	T	subsubsection:desert-fertilization-shiny""shiny app for viewing and loading selected desert fertilization data""notes
 type	shiny_app/R/helper_sql_execution.R	/^        type        = "message",$/;"	v	function:run_interpolated_execution
 type	shiny_app/R/helper_sql_execution.R	/^      type        = "error"$/;"	v	function:run_interpolated_execution.anonFunc28bd9ca20200.error
 type	shiny_app/R/helper_sql_execution.R	/^      type        = "error"$/;"	v	function:run_interpolated_query.anonFunc28bd9ca20100.error

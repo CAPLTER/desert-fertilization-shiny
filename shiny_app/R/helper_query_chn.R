@@ -22,6 +22,9 @@ query_chn <- function() {
       collection_date >= { Sys.Date() - lubridate::years(8) } AND
       plot_id IS NOT NULL AND
       omit = FALSE
+    ORDER BY
+      upload_batch DESC,
+      id DESC
     ;
     ',
     .con = DBI::ANSI()

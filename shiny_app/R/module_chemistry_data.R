@@ -102,7 +102,7 @@ chemistry_data <- function(id, tab = NULL) {
       autoWidth     = FALSE,
       pageLength    = 100,
       fixedHeader   = TRUE,
-      searching     = TRUE #,
+      searching     = FALSE #,
       # columnDefs    = list(
       #   list(
       #     targets = c(2, 16),

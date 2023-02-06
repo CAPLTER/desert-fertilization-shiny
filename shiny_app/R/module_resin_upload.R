@@ -66,9 +66,6 @@ upload_resinUI <- function(id) {
           id    = "left_panel",
           width = 2,
 
-          shiny::br(),
-          shiny::br(),
-
           shiny::wellPanel(
             style = "background: #C9DFEC",
 

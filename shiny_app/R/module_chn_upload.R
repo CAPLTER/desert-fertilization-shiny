@@ -1,19 +1,10 @@
 #' @title module: upload CHN plant-tissue data
 #'
-#' @description The module \code{upload_chn} facilitates uploading resin
-#' Lachat data. The user attaches the appropriate sample details to uploaded
-#' data. Upon execution, the munged data with sample and analysis details are
-#' written to 'urbancndep.resin'.
-#'
-#' @note The setup is a bit unusual in that we are using a text field input to
-#' facilitate adding the collection date. The reason for this is that the
-#' `shinyInputOther` function, while it will accept a shiny::dateInput as an
-#' input type, shiny::dateInput defaults to Sys.Date() as the NULL value. That
-#' is, shiny::dateInput cannot have a NULL value. This creates a problem for
-#' the dynamic data entry of the type addressed here where we attach and/or
-#' edit data associated with a table in that we need for those input fields to
-#' start as NULL or empty. The workaround is to enter collection date as a
-#' shiny::inputText, which can have a NULL or empty default value.
+#' @description The module \code{upload_chn} facilitates uploading plant tissue
+#' CHN data. The user identifies the appropriate sampling campaign, which
+#' attaches the relevant collection dates to the uploaded data. Upon execution,
+#' the munged data with sample and analysis details are written to
+#' 'urbancndep.plant_tissue_chn'.
 #'
 #' @note Using here scroller for the first time when rendering the interactive
 #' dataTable. The parameter `scrollY` sets the height of the rendered table.
@@ -56,7 +47,10 @@ upload_chnUI <- function(id) {
           shiny::div(
             id = "readme_box",
             shiny::strong("README"),
-            "All resin data samples must have an associated collection date. For convenience, an optional default collection date can be applied to all samples when the resin data Lachat file is imported by providing a valid date in the default date entry field - this will apply the date entered as the collection date for all samples in the imported data. Dates for samples that were not collected on the provided default date should be edited as appropriate in the collection_date column. Note that providing a default date is not required. It must be supplied in advance of importing the data. Use field_id_rev to assign sample ids to samples with missing or incorrect sample_ids. When all notes, dates, and field ids have been applied and any samples not intended for upload (omit) have been highlighted, etc., use the submit data button to upload data to the database."
+            "All CHN data samples must have an associated collection date. Before uploading the data file, select the relevant field campaign for the data. The dates for that field campaign will then be assigned to the corresponding plot ID in the uploaded data file. Identifying the relevant field campaign MUST be done in advance of uploading the data file. Once loaded, omit samples that should be not be included in the results, review the data to be uploaed, and, when satisifed, use the submit data button to upload data to the database.",
+            shiny::br(),
+            shiny::strong("NOTE "),
+            "because collection dates are assigned based on the field campaign, samples from different field campaigns cannot be included in a single upload."
           ) # close readme div
         )   # close readme column
         ),  # close readme row
@@ -66,14 +60,11 @@ upload_chnUI <- function(id) {
           id    = "left_panel",
           width = 2,
 
-          shiny::br(),
-          shiny::br(),
-
           shiny::wellPanel(
             style = "background: #C9DFEC",
 
             shiny::helpText(
-              "optional: apply an initial date to all samples",
+              "REQUIRED: identify field campaign of sample collection",
               style = "text-align: left; color: DarkBlue;"
               ),
             shiny::selectInput(
@@ -87,7 +78,7 @@ upload_chnUI <- function(id) {
             shiny::numericInput(
               inputId = ns("survey_year"),
               label   = "survey year",
-              value   = as.integer(lubridate::year(Sys.Date())),
+              value   = as.integer(lubridate::year(Sys.Date()) - 1),
               min     = 2015,
               max     = 2035,
               step    = 1,
@@ -240,12 +231,14 @@ upload_chn <- function(id, tab = NULL) {
 
       if (grepl("csv", file_type)) {
 
-        data_import <- readr::read_csv(
-          file      = input$data_file$datapath,
-          col_types = readr::cols(`Created on` = "c"),
-          skip      = 1
+        suppressMessages(
+          data_import <- readr::read_csv(
+            file      = input$data_file$datapath,
+            col_types = readr::cols(`Created on` = "c"),
+            skip      = 1
+          )
         )
-
+        
       } else {
 
         shiny::showNotification(
@@ -268,7 +261,7 @@ upload_chn <- function(id, tab = NULL) {
       # need to be simultaneously loose and rigorous with this check as the
       # column designations vary among runs so we need to confirm that expected
       # columns are included and at the expected location, then in
-      # \code{format_chn} to ensure consitent naming of those columns
+      # \code{format_chn} to ensure consistent naming of those columns
 
       if (
         !all(
