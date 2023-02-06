@@ -9,53 +9,72 @@
 
 build_insert_raw_query <- function(currentTab) {
 
-  # raw: cations ------------------------------------------------------------
+  # chn ------------------------------------------------------------------------
 
-  if (grepl("cation", currentTab, ignore.case = TRUE)) {
+  if (grepl("chn", currentTab, ignore.case = TRUE)) {
 
-    # base_query <- "
-    # INSERT INTO stormwater.icp(
-    #   run_id,
-    #   date_analyzed,
-    #   icp_out_id,
-    #   rack_tube,
-    #   type,
-    #   ca_183_944_nm_ppm,
-    #   ca_315_887_nm_ppm,
-    #   ca_317_933_nm_ppm,
-    #   na_588_995_nm_ppm,
-    #   na_589_592_nm_ppm,
-    #   y_371_029_nm_ratio,
-    #   zn_202_548_nm_ppm,
-    #   zn_206_200_nm_ppm,
-    #   zn_213_857_nm_ppm,
-    #   instrument,
-    #   source_file
-    # )
-    # (
-    #   SELECT
-    #     run_id,
-    #     date_time,
-    #     solution_label,
-    #     rack_tube,
-    #     type,
-    #     ca_183_944_nm_ppm,
-    #     ca_315_887_nm_ppm,
-    #     ca_317_933_nm_ppm,
-    #     na_588_995_nm_ppm,
-    #     na_589_592_nm_ppm,
-    #     y_371_029_nm_ratio,
-    #     zn_202_548_nm_ppm,
-    #     zn_206_200_nm_ppm,
-    #     zn_213_857_nm_ppm,
-    #     'Agilent 5900',
-    #     filename
-    #   FROM stormwater.temp_raw
-    #   )
-    # ;
-    # "
+    parameterized_query <- glue::glue_sql('
+      INSERT INTO urbancndep.plant_tissue_chn
+      (
+        "Run",
+        "Run #",
+        "Weight",
+        "Created on",
+        "Mode",
+        "Comment",
+        "Carbon %",
+        "Hydrogen %",
+        "Nitrogen %",
+        "ZR",
+        "CR",
+        "HR",
+        "NR",
+        "Carbon",
+        "Hydrogen",
+        "Nitrogen",
+        "Seconds",
+        "Messages",
+        plot_id,
+        collection_date,
+        tissue_type,
+        source_file,
+        upload_batch,
+        omit
+      )
+      (
+        SELECT
+        "Run",
+        "Run #",
+        "Weight",
+        "Created on",
+        "Mode",
+        "Comment",
+        "Carbon %",
+        "Hydrogen %",
+        "Nitrogen %",
+        "ZR",
+        "CR",
+        "HR",
+        "NR",
+        "Carbon",
+        "Hydrogen",
+        "Nitrogen",
+        "Seconds",
+        "Messages",
+        plot_id,
+        collection_date,
+        tissue_type,
+        sourcefile,
+        upload_batch,
+        omit
+        FROM urbancndep.temp_raw
+      )
+      ;
+      ',
+      .con = DBI::ANSI()
+    )
 
-  # raw: lachat ------------------------------------------------------------
+    # resin --------------------------------------------------------------------
 
   } else if (grepl("resin", currentTab, ignore.case = TRUE)) {
 
@@ -134,93 +153,17 @@ build_insert_raw_query <- function(currentTab) {
         omit,
         sourcefile
         FROM urbancndep.temp_raw
-        )
-        ;
-        ",
-        .con = DBI::ANSI()
       )
-
-  # raw: aq2 ------------------------------------------------------------
-
-  } else if (grepl("aq2", currentTab, ignore.case = TRUE)) {
-
-    # base_query <- "
-    # INSERT INTO stormwater.aq2
-    # (
-    #   run_id,
-    #   aq2_out_id,
-    #   sample_details,
-    #   test,
-    #   results,
-    #   units,
-    #   absorbance,
-    #   date_and_time,
-    #   operator,
-    #   pre_dil_factor,
-    #   auto_dil_factor,
-    #   source_file
-    # )
-    # (
-    #   SELECT
-    #     run_id,
-    #     sample_id,
-    #     sample_details,
-    #     test,
-    #     results,
-    #     units,
-    #     absorbance,
-    #     date_and_time,
-    #     operator,
-    #     pre_dil_factor,
-    #     auto_dil_factor,
-    #     filename
-    #   FROM stormwater.temp_raw
-    #   );"
-
-  # raw: shimadzu ------------------------------------------------------------
-
-  } else if (grepl("shimadzu", currentTab, ignore.case = TRUE)) {
-
-    # base_query <- "
-    # INSERT INTO stormwater.shimadzu
-    # (
-    #   run_id,
-    #   type,
-    #   analysis,
-    #   sample_name,
-    #   shimadzu_out_id,
-    #   origin,
-    #   result,
-    #   date_time,
-    #   vial,
-    #   source_file
-    # )
-    # (
-    #   SELECT
-    #     run_id,
-    #     type,
-    #     analysis,
-    #     sample_name,
-    #     sample_id,
-    #     origin,
-    #     result,
-    #     date_time,
-    #     vial,
-    #     filename
-    #   FROM stormwater.temp_raw
-    #   );"
+      ;
+      ",
+      .con = DBI::ANSI()
+    )
 
   } else {
 
-    base_query <- NULL
+    parameterized_query <- NULL
 
   }
-
-  # parameterized query
-  # parameterized_query <- DBI::sqlInterpolate(
-  #   ANSI(),
-  #   base_query
-  # )
 
   return(parameterized_query)
 

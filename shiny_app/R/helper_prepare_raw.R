@@ -13,19 +13,32 @@ prepare_raw <- function(raw_reactive, analysis) {
 
   temp_raw <- raw_reactive
 
-  ## add batch
+  ## prep chn
+
+  if (grepl("chn", analysis, ignore.case = TRUE)) {
+
+    temp_raw <- prepare_chn_data(temp_raw)
+
+    current_batch_query <- "SELECT MAX(upload_batch) AS max FROM urbancndep.plant_tissue_chn ;"
+
+
+  }
+
+  ## prep resin
 
   if (grepl("resin", analysis, ignore.case = TRUE)) {
 
     temp_raw <- prepare_resin_data(temp_raw)
 
     current_batch_query <- "SELECT MAX(upload_batch) AS max FROM urbancndep.resin;"
-    current_batch       <- run_interpolated_query(current_batch_query)
-    next_batch          <- as.integer(current_batch[["max"]]) + 1
-
-    temp_raw[["upload_batch"]] <- next_batch
 
   }
+
+  ## add batch
+
+  current_batch              <- run_interpolated_query(current_batch_query)
+  next_batch                 <- as.integer(current_batch[["max"]]) + 1
+  temp_raw[["upload_batch"]] <- next_batch
 
 
   ## write temporary table: raw data

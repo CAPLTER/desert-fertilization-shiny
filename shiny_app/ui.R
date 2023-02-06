@@ -19,6 +19,11 @@ ui <- shiny::tagList(
       ),
 
     shiny::tabPanel(
+      title = "chn: upload",
+      upload_chnUI("upload_chn")
+      ),
+
+    shiny::tabPanel(
       title = "chemistry data",
       chemistry_dataUI("chemistry_data")
       ),

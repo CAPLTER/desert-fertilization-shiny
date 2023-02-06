@@ -9,11 +9,8 @@ query_chn <- function() {
 
   parameterized_query <- glue::glue_sql('
     SELECT
-      site_code,
       plot_id, 
-      treatment_code,
-      sample_date,
-      season_year, 
+      collection_date,
       tissue_type,
       "Weight",
       "Comment", 
@@ -22,18 +19,15 @@ query_chn <- function() {
       "Nitrogen %"
     FROM urbancndep.plant_tissue_chn
     WHERE 
-      sample_date >= { Sys.Date() - lubridate::years(5) } AND
+      collection_date >= { Sys.Date() - lubridate::years(8) } AND
       plot_id IS NOT NULL AND
-      (
-        "Comment" !~* \'need|require\' OR
-        "Comment" IS NULL
-      )
+      omit = FALSE
     ;
     ',
     .con = DBI::ANSI()
   )
 
-  print(parameterized_query)
+  # print(parameterized_query)
   run_interpolated_query(parameterized_query)
 
 }

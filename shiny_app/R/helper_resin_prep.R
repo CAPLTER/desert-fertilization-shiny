@@ -19,7 +19,7 @@ prepare_resin_data <- function(data_to_prepare) {
       ),
     collection_date = replace(collection_date, collection_date == "", NA),
     collection_date = dplyr::case_when(
-      grepl("blk", field_id, ignore.case = T) ~ as.Date(NA),
+      grepl("blk", field_id, ignore.case = TRUE) ~ as.Date(NA),
       TRUE ~ as.Date(collection_date)
     )
   )

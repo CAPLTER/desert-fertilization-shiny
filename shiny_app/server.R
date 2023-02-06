@@ -9,6 +9,7 @@ server <- function(input, output, session) {
 
   fertilizer("fertilizer")
   upload_resin("upload_resin", tab = tabID)
+  upload_chn("upload_chn", tab = tabID)
   chemistry_data("chemistry_data")
   # ResinViewer1$call()
 
