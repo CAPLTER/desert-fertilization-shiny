@@ -28,14 +28,9 @@ ui <- shiny::tagList(
       chemistry_dataUI("chemistry_data")
       ),
 
-    # shiny::tabPanel(
-    #   title = "resin: data",
-    #   ResinViewer1$ui()
-    #   ),
-
     shiny::tabPanel(
       title = "annuals cover",
-      cover_events_UI("annuals_cover")
+      cover_eventsUI("cover_events")
     )
 
   ) # close navbarPage

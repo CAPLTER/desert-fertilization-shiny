@@ -1,454 +1,311 @@
 #' @title module: cover events
 #'
 #' @description The module cover events facilitates entering Desert
-#'  Fertilization annuals cover data. This interface is written explicity as a
-#'  data-entry tool and purposefully omits more sophisiticated data querying and
-#'  viewing functionality.
+#' Fertilization annuals cover data. This interface is written explicity as a
+#' data-entry tool and purposefully omits more sophisiticated data querying and
+#' viewing functionality.
 
 # UI ---------------------------------------------------------------------------
 
-cover_events_UI <- function(id) {
+cover_eventsUI <- function(id) {
 
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
-  tagList(
-    tags$head(
-      tags$style(
-        HTML(
-          paste0("#", ns("left_panel"), "{ background: #D3D3D3; color: #484848; }")
-        ) # close HTML
-      ) # close tags$style
-      ), # close tagss$head
-    fluidPage(
-      fluidRow(
-        column(
-          id = ns("left_panel"), 2,
+  shiny::tagList(
 
-          # add new
+    shiny::fluidPage(
 
-          strong("add new",
-            style = "text-align: center; color: black"),
-          selectizeInput(
-            inputId = ns("new_cover_event_plot"),
-            label = "plot (required)",
-            choices = cover_sites_plots["plot_id"],
-            selected = NULL,
-            multiple = FALSE
-            ),
-          selectizeInput(
-            inputId = ns("new_cover_event_position"),
-            label = "position (required)",
-            choices = c("P", "IP"),
-            selected = NULL,
-            multiple = FALSE
-            ),
-          selectizeInput(
-            inputId = ns("new_cover_event_subplot"),
-            label = "subplot (required)",
-            choices = c(1, 2),
-            selected = NULL,
-            multiple = FALSE
-            ),
-          dateInput(
-            inputId = ns("new_cover_event_date"),
-            "collection date (required)",
-            format = "yyyy-mm-dd"
-            ),
-          selectizeInput(
-            inputId  = ns("new_cover_event_collector"),
-            label    = "collector (required)",
-            choices  = annuals_comp_surveyors,
-            multiple = TRUE
-            ),
-          br(),
-          actionButton(
-            inputId = ns("add_new_cover_event"),
-            label = "add event",
-            style = "text-align:center; border-sytle:solid; border-color:#0000ff;"
-          )
-          ), # close the left column
+      shiny::fluidRow(
+        shiny::column(
+          id    = "readme_row",
+          width = 12,
+          shiny::div(
+            id = "readme_box",
+            "table displays only data from the current year"
+          ) # close readme div
+        )   # close readme column
+        ),  # close readme row
+
+      shiny::fluidRow(
+
+        shiny::column(
+          id    = ns("left_panel"),
+          width = 2,
+
+          shiny::wellPanel(
+            style = "background: #C9DFEC",
+
+            shiny::actionButton(
+              inputId = ns("add_new_cover_event"),
+              label   = "add event",
+              class   = "btn-success",
+              style   = "color: #fff;",
+              icon    = shiny::icon("plus"),
+              width   = "100%"
+              ),
+            shiny::br()
+          )  # close well panel
+          ), # close left col
 
         # main view
 
-        column(
-          id = "right_panel",
+        shiny::column(
+          id    = "right_panel",
           width = 10,
           DT::dataTableOutput(ns("cover_events_view")),
-          div(id = "add_cover_compositions")
+          shiny::div(id = "add_cover_compositions")
         ) # close the right column
+
       ) # close the row
-    ) # close the page
-  ) # close tagList
+    ),   # close the page
+
+    # js file and function within file respectively
+    tags$script(src = "cover_events_module.js"),
+    tags$script(paste0("cover_events_module_js('", ns(''), "')"))
+
+  )     # close tagList
 
 } # close UI
 
 
 # main -------------------------------------------------------------------------
 
-cover_events_server <- function(input, output, session) {
+cover_events <- function(id) {
 
-  # added to facilitate renderUIs
-  ns <- session$ns
+  shiny::moduleServer(id, function(input, output, session) {
 
-  # create listener for adding and deleting records
-  listen_cover_events <- reactiveValues(db_version = 0)
+    # setup 
+    ns <- session$ns # to facilitate renderUIs
+    listener_init("update_cover_events")
 
 
-  # cover events data ------------------------------------------------------------
+    # cover events data ----------------------------------------------------------
 
-  cover_events_reactive <- reactive({
+    cover_events_reactive <- shiny::reactive({
 
-    # add listener for adding and deleting records
-    listen_cover_events$db_version
+      # add listener for adding records
+      listener_watch("update_cover_events")
 
-    base_query <- "
-    SELECT
-      cover_events.cover_event_id AS id,
-      sites.code AS site,
-      cover_events.plot AS plot,
-      treatments.code AS treatment,
-      cover_events.patch_type AS position,
-      cover_events.subplot,
-      cover_events.sample_date AS date,
-      cover_events.year,
-      cover_events.collector
-    FROM
-      urbancndep.cover_events
-    JOIN urbancndep.plots ON (cover_events.plot = plots.id)
-    JOIN urbancndep.sites ON (sites.id = plots.site_id)
-    JOIN urbancndep.treatments treatments ON (treatments.id = plots.treatment_id)
-    WHERE
-      cover_events.year >= ?year
-    ORDER BY
-      cover_events.cover_event_id DESC ;
-    "
+      cover_events_data <- query_cover_events()
 
-    parameterized_query <- sqlInterpolate(
-      ANSI(),
-      base_query,
-      year = lubridate::year(Sys.Date())
+      if (nrow(cover_events_data) == 0) {
+
+        cover_events_data <- NULL
+
+      } else {
+
+        actions <- purrr::map_chr(cover_events_data$id, function(id_) {
+          paste0(
+            '<div class="btn-group" style="width: 120px;" role="group" aria-label="Basic example">
+              <button class="btn btn-primary btn-sm edit_btn" data-toggle="tooltip" data-placement="top" title="Edit" id = ', id_, ' style="margin: 0"><i class="fa fa-pencil-square-o"></i></button>
+              <button class="btn btn-info btn-sm info_btn" data-toggle="tooltip" data-placement="top" title="Observations" id = ', id_, ' style="margin-left: 5px;"><i class="fa fa-terminal"></i></button>
+              <button class="btn btn-danger btn-sm delete_btn" data-toggle="tooltip" data-placement="top" title="Delete" id = ', id_, ' style="margin-left: 5px;"><i class="fa fa-trash-o"></i></button>
+            </div>'
+          )
+      }
+        )
+
+        cover_events_data <- cbind(
+          tibble::tibble("actions" = actions),
+          cover_events_data
+        )
+
+      }
+
+      return(cover_events_data)
+
+    }) # close cover_events_reactive
+
+
+    # render (non-editable) table of cover events data
+    output$cover_events_view <- DT::renderDT({
+
+      cover_events_reactive()
+
+    },
+    escape    = FALSE,
+    selection = "none",
+    rownames  = FALSE,
+    options   = list(
+      # columnDefs = list(
+      #   list(
+      #     targets   = c(0, 9, 10),
+      #     orderable = FALSE
+      #   )
+      #   ),
+      bFilter       = 0,
+      bLengthChange = FALSE,
+      bPaginate     = FALSE,
+      autoWidth     = TRUE
     )
+    ) # close output$cover_events_view
 
-    cover_events_data <- run_interpolated_query(parameterized_query)
 
-    cover_events_data <- cover_events_data %>%
-      mutate(
-        modify = shinyInput(
-          reactiveObject = cover_events_data,
-          FUN = actionButton,
-          len = nrow(cover_events_data),
-          id = "",
-          label = "observations",
-          onclick = sprintf('Shiny.setInputValue("%s",  this.id)', session$ns("button_modify_cover_event"))),
-        delete = shinyInput(
-          reactiveObject = cover_events_data,
-          FUN = actionButton,
-          len = nrow(cover_events_data),
-          id = "",
-          label = "delete",
-          onclick = sprintf('Shiny.setInputValue("%s",  this.id)', session$ns("button_delete_cover_event")))
+    # delete cover events --------------------------------------------------------
+
+    shiny::observeEvent(input$cover_event_to_delete, {
+
+      parameterized_query <- glue::glue_sql('
+        DELETE FROM urbancndep.cover_events
+        WHERE cover_event_id = { as.numeric(input$cover_event_to_delete) }
+        ;
+        ',
+        .con = DBI::ANSI()
       )
 
-    return(cover_events_data)
+      run_interpolated_query(parameterized_query)
 
-  }) # close cover_events_reactive
-
-
-  # render (non-editable) table of cover events data
-  output$cover_events_view <- DT::renderDT({
-
-    cover_events_reactive()
-
-  },
-  escape = FALSE,
-  selection = "none",
-  rownames = FALSE,
-  options = list(
-    columnDefs = list(list(targets = c(0, 9, 10), orderable = FALSE)),
-    bFilter = 0,
-    bLengthChange = FALSE,
-    bPaginate = FALSE,
-    autoWidth = TRUE
-  )
-  ) # close output$cover_events_view
-
-
-  # delete cover events ----------------------------------------------------------
-
-  delete_cover_event <- function(row_to_delete) {
-
-    baseQuery <- "
-    DELETE FROM urbancndep.cover_events
-    WHERE cover_event_id = ?RWE_ID ;
-    "
-
-    parameterized_query <- sqlInterpolate(
-      ANSI(),
-      baseQuery,
-      RWE_ID = as.numeric(row_to_delete)
-    )
-
-    run_interpolated_execution(parameterized_query)
-
-    # change listener state when deleting a record
-    listen_cover_events$db_version <- isolate(listen_cover_events$db_version + 1)
-
-  }
-
-  observeEvent(input$button_delete_cover_event, {
-
-    delete_cover_event(row_to_delete = input$button_delete_cover_event)
+      listener_trigger("update_cover_events")
 
     })
 
 
-  # add new cover event ----------------------------------------------------------
+    # edit existing cover event ------------------------------------------------
 
-  observeEvent(input$add_new_cover_event, {
+    this_cover_event_to_edit <- shiny::eventReactive(input$cover_event_to_edit, {
 
-    validate(
-      need(!is.null(input$new_cover_event_plot), "select a sample position"),
-      need(!is.null(input$new_cover_event_position), "select a sample position"),
-      need(!is.null(input$new_cover_event_subplot), "select a sample subplot"),
-      need(!is.null(input$new_cover_event_date), "enter a collection date"),
-      need(is.Date(input$new_cover_event_date), "collection date must be a valid date"),
-      need(!is.null(input$new_cover_event_collector), "enter a collector"),
-      need(paste0(c(input$new_cover_event_collector), collapse = "; ") != "", "enter a collector")
-    )
+      this_cover_event <- cover_events_reactive() |>
+      dplyr::filter(id == input$cover_event_to_edit) |>
+      dplyr::select(-actions)
 
-    input_new_date <- as.character(input$new_cover_event_date)
-    input_new_year <- as.integer(lubridate::year(input$new_cover_event_date))
-    input_new_plot <- as.integer(input$new_cover_event_plot)
-    input_new_patch_type <- as.character(input$new_cover_event_position)
-    input_new_subplot <- as.integer(input$new_cover_event_subplot)
-    input_new_collector <- paste0(c(input$new_cover_event_collector), collapse = "; ")
-
-    # new cover event
-    base_query <- "
-    INSERT INTO urbancndep.cover_events
-    (
-      sample_date,
-      year,
-      plot,
-      patch_type,
-      subplot,
-      collector
-    )
-    VALUES
-    (
-      ?submitted_date,
-      ?submitted_year,
-      ?submitted_plot,
-      ?submitted_patch_type,
-      ?submitted_subplot,
-      ?submitted_collector
-      ) ;
-    "
-
-    parameterized_query <- sqlInterpolate(
-      ANSI(),
-      base_query,
-      submitted_date = input_new_date,
-      submitted_year = input_new_year,
-      submitted_plot = input_new_plot,
-      submitted_patch_type = input_new_patch_type,
-      submitted_subplot = input_new_subplot,
-      submitted_collector = input_new_collector
-    )
-
-    # establish db connection
-    pg <- database_connection()
-
-    # close db connection after function call exits
-    on.exit(dbDisconnect(pg))
-
-    # because we want multiple processes wrapped in a tryCatch, we cannot use
-    # run_interpolated_execution()
-
-    tryCatch({
-
-      # add record keeper to composition table
-
-      dbGetQuery(pg, "BEGIN TRANSACTION")
-
-      # execute insert query
-      dbExecute(
-        pg,
-        parameterized_query
-      )
-
-      # get id of added event
-      get_event_id_base_query <- "
-      SELECT
-      MAX (cover_event_id)
-      FROM urbancndep.cover_events
-      ;
-      "
-      get_event_id_parameterized_query <- sqlInterpolate(
-        ANSI(),
-        get_event_id_base_query
-      )
-
-      new_event_id <- dbGetQuery(pg, get_event_id_parameterized_query)
-      new_event_id <- as.integer(new_event_id)
-
-      # add composition record keeping observation
-      add_record_base_query <- "
-      INSERT INTO urbancndep.cover_composition
-      (
-        cover_event_id,
-        cover_type_id,
-        cover_amt
-      )
-      VALUES
-      (
-        ?submitted_event_id,
-        111,
-        1
-        ) ;
-      "
-      add_record_parameterized_query <- sqlInterpolate(
-        ANSI(),
-        add_record_base_query,
-        submitted_event_id = new_event_id
-      )
-
-      dbExecute(pg, add_record_parameterized_query)
-
-      # commit transaction
-      dbCommit(pg)
-
-      showNotification(
-        ui = "action committed",
-        duration = 3,
-        closeButton = TRUE,
-        type = "message")
-
-      # change listener state when deleting a record
-      listen_cover_events$db_version <- isolate(listen_cover_events$db_version + 1)
-
-      # reset values of input form
-
-      # updateSelectizeInput(
-      #   session,
-      #   inputId = "new_cover_event_plot",
-      #   label = "plot (required)",
-      #   choices = cover_sites_plots["plot_id"],
-      #   selected = NULL
-      # )
-
-      updateSelectizeInput(
-        session,
-        inputId = "new_cover_event_position",
-        label = "position (required)",
-        choices = c("P", "IP"),
-        selected = NULL
-      )
-
-      updateSelectizeInput(
-        session,
-        inputId = "new_cover_event_subplot",
-        label = "subplot (required)",
-        choices = c(1, 2),
-        selected = NULL
-      )
-
-      # updateDateInput(
-      #   session,
-      #   inputId = "new_cover_event_date",
-      #   label = "collection date (required)",
-      #   value = Sys.Date()
-      # )
-
-      updateSelectizeInput(
-        session,
-        inputId  = "new_cover_event_collector",
-        label    = "collector (required)",
-        choices  = annuals_comp_surveyors
-      )
-
-    }, warning = function(warn) {
-
-      showNotification(
-        ui          = paste("there is a warning:  ", warn),
-        duration    = NULL,
-        closeButton = TRUE,
-        type        = "warning"
-      )
-
-      print(paste("WARNING: ", warn))
-
-    }, error = function(err) {
-
-      showNotification(
-        ui          = paste("there was an error:  ", err),
-        duration    = NULL,
-        closeButton = TRUE,
-        type        = "error"
-      )
-
-      print(paste("ERROR: ", err))
-      print("ROLLING BACK TRANSACTION")
-
-      # rollback upon error
-      dbRollback(pg)
-
-    }) # close try catch
-
-    # close database connection
-    dbDisconnect(pg)
+      return(this_cover_event)
 
     })
 
-  # add observations to cover event ----------------------------------------------
+    edit_counter <- shiny::reactiveVal(value = 0)
 
-  # establish counter for removing module UIs
-  cover_composition_counter <- reactiveVal(value = 0)
+    shiny::observeEvent(input$cover_event_to_edit, {
 
-  # action on modify cover event
+      id <- edit_counter()
 
-  observeEvent(input$button_modify_cover_event, {
-
-    # module counter
-    cover_composition_module_id <- cover_composition_counter()
-
-    # unique element id based on module counter
-    cover_element_id <- paste0("cover_element_id_", cover_composition_module_id)
-
-    # insert composition module at placeholder with a unique ID;
-    # wrap UIs in a div so we can easily call the div tag id to selectively
-    # remove the module UIs
-    insertUI(
-      selector = "#add_cover_compositions",
-      where = "beforeBegin",
-      ui = tags$div(
-        id = cover_element_id,
-        cover_composition_UI(ns(paste0("cover_event", cover_composition_module_id)))
+      module_cover_event_new(
+        id            = paste0("edit_cover_event", id),
+        modal_title   = "edit cover event",
+        ce_to_edit    = this_cover_event_to_edit
       )
+
+      edit_counter(id + 1) # increment module counter
+
+      if (edit_counter() > 1) {
+
+        remove_shiny_inputs(paste0("cover_events-edit_cover_event", id, "-edit_cover_event", id), input)
+
+      }
+
+    },
+    once       = FALSE,
+    ignoreInit = TRUE
     )
 
-    # call cover composition module with unique id
-    callModule(
-      module = cover_composition,
-      id = paste0("cover_event", cover_composition_module_id),
-      cover_event_ID = reactive({ input$button_modify_cover_event })
+
+    # add new cover event ------------------------------------------------------
+
+    add_counter <- shiny::reactiveVal(value = 0)
+
+    shiny::observeEvent(input$add_new_cover_event, {
+
+      id <- add_counter()
+
+      module_cover_event_new(
+        id            = paste0("add_cover_event", id),
+        modal_title   = "add cover event",
+        ce_to_edit    = function() NULL
+      )
+
+      add_counter(id + 1) # increment module counter
+
+      if (add_counter() > 1) {
+
+        remove_shiny_inputs(paste0("cover_events-add_cover_event", id, "-add_cover_event", id), input)
+
+      }
+
+    },
+    once       = FALSE,
+    ignoreInit = TRUE
     )
 
-    # increment module counter
-    cover_composition_counter(cover_composition_module_id + 1)
 
-    # remove composition module if one already exist
-    if (cover_composition_counter() > 1) { removeUI(selector = paste0("#", cover_element_id)) }
+    # add observations to cover event ----------------------------------------------
+
+    this_ce_to_populate <- shiny::eventReactive(input$cover_event_to_populate, {
+
+      this_cover_event <- cover_events_reactive() |>
+      dplyr::filter(id == input$cover_event_to_populate) |>
+      dplyr::select(-actions)
+
+      return(this_cover_event)
 
     })
 
+    populate_counter <- shiny::reactiveVal(value = 0)
+    ce_element_id    <- paste0("ce_element_", id)
 
-  # debugging: module level -------------------------------------------------
+    shiny::observeEvent(input$cover_event_to_populate, {
 
-  ############# START debugging
-  # observe(print({ cover_events_reactive() }))
-  # observe(print({ queryType$default }))
-  # observe(print({ input$new_cover_event_collector }))
-  ############# END debugging
+      id <- populate_counter()
 
-} # close module::cover_events
+      shiny::insertUI(
+        selector = "#add_cover_compositions",
+        where    = "beforeBegin",
+        ui       = tags$div(
+          id = ce_element_id,
+          cover_composition_UI(ns(paste0("cover_composition_inventory", cover_composition_module_id)))
+        )
+      )
+
+
+
+
+    })
+
+    # establish counter for removing module UIs
+    # cover_composition_counter <- shiny::reactiveVal(value = 0)
+
+    # # action on modify cover event
+
+    # shiny::observeEvent(input$button_modify_cover_event, {
+
+    #   # module counter
+    #   cover_composition_module_id <- cover_composition_counter()
+
+    #   # unique element id based on module counter
+    #   cover_element_id <- paste0("cover_element_id_", cover_composition_module_id)
+
+    #   # insert composition module at placeholder with a unique ID;
+    #   # wrap UIs in a div so we can easily call the div tag id to selectively
+    #   # remove the module UIs
+    #   shiny::insertUI(
+    #     selector = "#add_cover_compositions",
+    #     where    = "beforeBegin",
+    #     ui       = tags$div(
+    #       id = cover_element_id,
+    #       cover_composition_UI(ns(paste0("cover_event", cover_composition_module_id)))
+    #     )
+    #   )
+
+    #   # call cover composition module with unique id
+    #   callModule(
+    #     module         = cover_composition,
+    #     id             = paste0("cover_event", cover_composition_module_id),
+    #     cover_event_ID = reactive({ input$button_modify_cover_event })
+    #   )
+
+    #   # increment module counter
+    #   cover_composition_counter(cover_composition_module_id + 1)
+
+    #   # remove composition module if one already exist
+    #   if (cover_composition_counter() > 1) { shiny::removeUI(selector = paste0("#", cover_element_id)) }
+
+    # })
+
+
+    # debugging: module level --------------------------------------------------
+
+    # observe(print({ this_cover_event_to_edit() }))
+    # observe(print({ queryType$default }))
+    # observe(print({ input$new_cover_event_collector }))
+
+
+  }) # close module server
+} # close module function

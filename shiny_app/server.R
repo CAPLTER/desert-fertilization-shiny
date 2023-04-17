@@ -11,10 +11,7 @@ server <- function(input, output, session) {
   upload_resin("upload_resin", tab = tabID)
   upload_chn("upload_chn", tab = tabID)
   chemistry_data("chemistry_data")
-  # ResinViewer1$call()
-
-  callModule(module = cover_events_server,
-    id = "annuals_cover")
+  cover_events("cover_events")
 
 
   # debugging -----------------------------------------------------------------
