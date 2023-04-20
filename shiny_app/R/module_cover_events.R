@@ -16,54 +16,49 @@ cover_eventsUI <- function(id) {
     shiny::fluidPage(
 
       shiny::fluidRow(
+        align = "middle",
+
         shiny::column(
           id    = "readme_row",
-          width = 12,
+          width = 10,
+          align = "left",
           shiny::div(
             id = "readme_box",
             "table displays only data from the current year"
-          ) # close readme div
-        )   # close readme column
+          )  # close readme div
+          ), # close readme column
+        shiny::column(
+          id    = "readme_row",
+          width = 2,
+          shiny::br(),
+          shiny::actionButton(
+            inputId = ns("add_new_cover_event"),
+            label   = "add event",
+            class   = "btn-success",
+            style   = "color: #fff;",
+            icon    = shiny::icon("plus"),
+            width   = "100%"
+          )
+        )
         ),  # close readme row
 
       shiny::fluidRow(
 
         shiny::column(
-          id    = ns("left_panel"),
-          width = 2,
-
-          shiny::wellPanel(
-            style = "background: #C9DFEC",
-
-            shiny::actionButton(
-              inputId = ns("add_new_cover_event"),
-              label   = "add event",
-              class   = "btn-success",
-              style   = "color: #fff;",
-              icon    = shiny::icon("plus"),
-              width   = "100%"
-              ),
-            shiny::br()
-          )  # close well panel
-          ), # close left col
-
-        # main view
-
-        shiny::column(
           id    = "right_panel",
-          width = 10,
+          width = 12,
           DT::dataTableOutput(ns("cover_events_view")),
           shiny::div(id = "add_cover_compositions")
-        ) # close the right column
+        )
 
-      ) # close the row
-    ),   # close the page
+      )   # close the row
+      ),  # close the page
 
     # js file and function within file respectively
     tags$script(src = "cover_events_module.js"),
     tags$script(paste0("cover_events_module_js('", ns(''), "')"))
 
-  )     # close tagList
+  ) # close tagList
 
 } # close UI
 
@@ -74,7 +69,6 @@ cover_events <- function(id) {
 
   shiny::moduleServer(id, function(input, output, session) {
 
-    # setup 
     ns <- session$ns # to facilitate renderUIs
     listener_init("update_cover_events")
 
@@ -102,7 +96,7 @@ cover_events <- function(id) {
               <button class="btn btn-danger btn-sm delete_btn" data-toggle="tooltip" data-placement="top" title="Delete" id = ', id_, ' style="margin-left: 5px;"><i class="fa fa-trash-o"></i></button>
             </div>'
           )
-      }
+        }
         )
 
         cover_events_data <- cbind(
@@ -123,20 +117,29 @@ cover_events <- function(id) {
       cover_events_reactive()
 
     },
+    class     = c("compact" ,"cell-border stripe"),
     escape    = FALSE,
     selection = "none",
     rownames  = FALSE,
     options   = list(
-      # columnDefs = list(
-      #   list(
-      #     targets   = c(0, 9, 10),
-      #     orderable = FALSE
-      #   )
-      #   ),
-      bFilter       = 0,
+      columnDefs = list(
+        list(
+          targets   = c(0),
+          width     = "100px"
+          ),
+        # list(
+        #   targets   = c(1),
+        #   visible   = FALSE
+        #   ),
+        list(
+          targets   = c(0),
+          className = "dt-center"
+        )
+        ),
+      bFilter       = FALSE,
       bLengthChange = FALSE,
       bPaginate     = FALSE,
-      autoWidth     = TRUE
+      autoWidth     = FALSE
     )
     ) # close output$cover_events_view
 
@@ -216,7 +219,9 @@ cover_events <- function(id) {
 
       if (add_counter() > 1) {
 
-        remove_shiny_inputs(paste0("cover_events-add_cover_event", id, "-add_cover_event", id), input)
+        # remove_shiny_inputs(paste0("cover_events-add_cover_event", id, "-add_cover_event", id), input)
+        remove_shiny_inputs(ns(paste0("add_cover_event", id)), input)
+        remove_shiny_inputs(ns(paste0("add_cover_event", id, "-add_cover_event", id)), input)
 
       }
 
@@ -226,7 +231,7 @@ cover_events <- function(id) {
     )
 
 
-    # add observations to cover event ----------------------------------------------
+    # add observations to cover event ------------------------------------------
 
     this_ce_to_populate <- shiny::eventReactive(input$cover_event_to_populate, {
 
@@ -239,25 +244,40 @@ cover_events <- function(id) {
     })
 
     populate_counter <- shiny::reactiveVal(value = 0)
-    ce_element_id    <- paste0("ce_element_", id)
 
     shiny::observeEvent(input$cover_event_to_populate, {
 
-      id <- populate_counter()
+      id            <- populate_counter()
+      ce_element_id <- paste0("ce_element_", id)
 
       shiny::insertUI(
         selector = "#add_cover_compositions",
         where    = "beforeBegin",
         ui       = tags$div(
           id = ce_element_id,
-          cover_composition_UI(ns(paste0("cover_composition_inventory", cover_composition_module_id)))
+          cover_compositionUI(ns(paste0("cover_composition_inventory", id)))
         )
       )
 
+      cover_composition(
+        id             = paste0("cover_composition_inventory", id),
+        ce_to_populate = this_ce_to_populate
+      )
 
+      populate_counter(populate_counter() + 1)
 
+      if (populate_counter() > 1) {
 
-    })
+        shiny::removeUI(selector = paste0("#", ce_element_id))
+        remove_shiny_inputs(ns(paste0("cover_composition_inventory", id)), input)
+        remove_shiny_inputs(ns(paste0("cover_composition_inventory", id, "-cover_composition_inventory", id)), input)
+
+      }
+
+    },
+    once       = FALSE,
+    ignoreInit = TRUE
+    )
 
     # establish counter for removing module UIs
     # cover_composition_counter <- shiny::reactiveVal(value = 0)
@@ -302,7 +322,7 @@ cover_events <- function(id) {
 
     # debugging: module level --------------------------------------------------
 
-    # observe(print({ this_cover_event_to_edit() }))
+    # observe(print({ this_ce_to_populate() }))
     # observe(print({ queryType$default }))
     # observe(print({ input$new_cover_event_collector }))
 

@@ -5,6 +5,11 @@ server <- function(input, output, session) {
   tabID <- shiny::reactive({ input$tabs })
 
 
+  # listeners
+
+  listener_init("update_composition")
+
+
   # modules -------------------------------------------------------------------
 
   fertilizer("fertilizer")

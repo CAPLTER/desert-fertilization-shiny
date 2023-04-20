@@ -1,266 +1,251 @@
 #' @title module: cover composition
 #'
-#' @description The module cover composition facilitates adding Desert
-#'  Fertilization cover composition data to cover events.
+#' @description The module cover composition facilitates adding, deleting, and
+#' editing Desert Fertilization cover composition data.
+#'
+#' @export
 
 # cover composition UI ---------------------------------------------------------
 
-cover_composition_UI <- function(id) {
+cover_compositionUI <- function(id) {
 
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
-  tagList(
-    uiOutput(ns("cover_composition_styling")),
-    DT::DTOutput(ns("cover_composition_view")),
-    uiOutput(ns("add_new_cover_composition_UI"))
+  shiny::tagList(
+
+    shiny::fluidRow(
+      id = "row_reference_cover_event_details",
+      shiny::hr(),
+
+      shiny::column(
+        id     = "column_reference_cover_event_details",
+        width  = 12,
+        offset = 0,
+        shiny::verbatimTextOutput(ns("cover_event_details_view"))
+      ) # close column
+
+      ), # close row
+
+    shiny::fluidRow(
+      id = "row_cover_composition",
+
+      shiny::column(
+        id     = "column_buttons",
+        width  = 1,
+        offset = 0,
+        style = "padding-left: 30px; padding-right: 10px;",
+        shiny::br(),
+        shiny::br(),
+        shiny::actionButton(
+          inputId = ns("add_cover_composition"),
+          label   = "add cover",
+          class   = "btn-success",
+          style   = "color: #fff; margin-bottom: 2px;",
+          icon    = shiny::icon("plus"),
+          width   = "100%"
+        )
+        ),
+
+      shiny::column(
+        id     = "column_data",
+        width  = 10,
+        offset = 0,
+        style  = "padding-right: 30px;",
+        DT::DTOutput(ns("cover_composition_view"))
+      )  # close column
+      ), # close row
+
+    # js file and function within file respectively
+    tags$script(src = "cover_composition_module.js"),
+    tags$script(paste0("cover_composition_module_js('", ns(''), "')"))
+
   ) # close tagList
 
-} # close cover_composition_UI
+} # close cover_compositionUI
+
 
 # cover composition ------------------------------------------------------------
 
-cover_composition <- function(input, output, session, cover_event_ID) {
+cover_composition <- function(id, ce_to_populate) {
 
-  # added to facilitate renderUIs
-  ns <- session$ns
+  shiny::moduleServer(id, function(input, output, session) {
 
-  # create listener for adding and deleting records
-  listen_cover_composition <- reactiveValues(db_version = 0)
+    # added to facilitate renderUIs
+    ns <- session$ns
 
-  cover_composition_data <- reactive({
+    message("from mcc ", session$ns(id))
 
-    # add listener for adding and deleting records
-    listen_cover_composition$db_version
+    # query cover event details for reference
+    cover_event_details_reactive <- shiny::reactive({
 
-    baseQuery <- "
-    SELECT
-      cover_composition.cover_id AS id,
-      cover_events.cover_event_id,
-      cover_types.cover_type,
-      cover_types.cover_category,
-      cover_composition.cover_amt as amount
-    FROM urbancndep.cover_composition
-    JOIN urbancndep.cover_events ON (cover_composition.cover_event_id = cover_events.cover_event_id)
-    JOIN urbancndep.cover_types ON (cover_composition.cover_type_id = cover_types.cover_type_id)
-    WHERE
-      cover_composition.cover_event_id = ?cover_event
-    ORDER BY
-      cover_events.cover_event_id,
-      cover_types.cover_category DESC,
-      cover_types.cover_type
-    ;
-    "
-    parameterized_query <- sqlInterpolate(
-      ANSI(),
-      baseQuery,
-      cover_event = cover_event_ID()
-    )
-
-    cover_composition_observations <- run_interpolated_query(parameterized_query)
-
-    # add delete button to cover composition observation
-    cover_composition_observations <- cover_composition_observations %>%
-      mutate(
-        delete = shinyInput(
-          reactiveObject = cover_composition_observations,
-          FUN = actionButton,
-          len = nrow(cover_composition_observations),
-          id = "",
-          label = "delete",
-          onclick = sprintf('Shiny.setInputValue("%s",  this.id)', session$ns("button_delete_cover_composition_observation"))
+      cover_event_details <- query_cover_event(
+        cover_event_id = ce_to_populate()$id
         )
+
+      return(cover_event_details)
+
+    })
+
+    output$cover_event_details_view <- shiny::renderText({
+
+      paste0(
+        "site: ",       cover_event_details_reactive()[["site"]],       " | ",
+        "plot: ",       cover_event_details_reactive()[["plot"]],       " | ",
+        "treatment: ",  cover_event_details_reactive()[["treatment"]],  " | ",
+        "position: ",   cover_event_details_reactive()[["position"]],   " | ",
+        "subplot: ",    cover_event_details_reactive()[["subplot"]],    " | ",
+        "date: ",       cover_event_details_reactive()[["date"]]
       )
 
-    return(cover_composition_observations)
-
-  })
+    })
 
 
-  # render (uneditable) table of cover composition observations
-  output$cover_composition_view <- DT::renderDT({
 
-    cover_composition_data()
+    cover_compositions_reactive <- shiny::reactive({
 
-  },
-  escape = FALSE,
-  selection = "none",
-  rownames = FALSE,
-  options = list(
-    columnDefs = list(list(targets = c(1, 5), orderable = FALSE)),
-    bFilter = 0,
-    bLengthChange = FALSE,
-    bPaginate = FALSE
-  )
+      listener_watch("update_composition") 
 
-  ) # close cover_composition_view
+      cover_compositions_queried <- query_cover_compositions(
+        cover_event_id = ce_to_populate()$id
+      )
 
+      if (nrow(cover_compositions_queried) == 0) {
 
-# delete cover composition observation -----------------------------------------
+        cover_compositions_queried <- NULL
 
-  delete_cover_composition_observation <- function(row_to_delete) {
+      } else {
 
-    base_query <- "
-    DELETE FROM urbancndep.cover_composition
-    WHERE cover_composition.cover_id = ?RWE_ID ;
-    "
-
-    parameterized_query <- sqlInterpolate(
-      ANSI(),
-      base_query,
-      RWE_ID = as.numeric(row_to_delete)
-    )
-
-    run_interpolated_execution(parameterized_query)
-
-    # change listener state when deleting a record
-    listen_cover_composition$db_version <- isolate(listen_cover_composition$db_version + 1)
-
-  }
-
-
-  observeEvent(input$button_delete_cover_composition_observation, {
-
-    delete_cover_composition_observation(row_to_delete = input$button_delete_cover_composition_observation)
-
-  })
-
-
-# add new cover composition observation ----------------------------------------
-
-  output$cover_event_under_edit <- renderText({ cover_event_ID() })
-
-  # generate UI for adding a new cover composition observation
-  output$add_new_cover_composition_UI <- renderUI({
-
-    tagList(
-      tags$head(
-        tags$style(
-          HTML(paste0("#", ns("cover_event_under_edit"), "{ color: DarkGray; }"))
-        ) # close tags$style
-        ), # close tagss$head
-      fluidRow(
-        id = "new_cover_observation_row",
-        column(
-          width = 2,
-          tags$b("cover_event_ID"),
-          p(""),
-          textOutput(ns("cover_event_under_edit"))
-          ),
-        column(
-          width = 4,
-          selectizeInput(
-            ns("new_cover_observation_type"),
-            "cover type",
-            choices = c(cover_types$cover_type),
-            selected = FALSE,
-            multiple = FALSE
+        actions <- purrr::map_chr(cover_compositions_queried$id, function(id_) {
+          paste0(
+            '<div class="btn-group" style="width: 120px;" role="group" aria-label="Basic example">
+              <button class="btn btn-primary btn-sm edit_btn" data-toggle="tooltip" data-placement="top" title="Edit" id = ', id_, ' style="margin: 0"><i class="fa fa-pencil-square-o"></i></button>
+              <button class="btn btn-danger btn-sm delete_btn" data-toggle="tooltip" data-placement="top" title="Delete" id = ', id_, ' style="margin-left: 5px;"><i class="fa fa-trash-o"></i></button>
+            </div>'
           )
+        }
+        )
+
+        cover_compositions_queried <- cbind(
+          tibble::tibble("actions" = actions),
+          cover_compositions_queried
+        )
+
+      }
+
+      return(cover_compositions_queried)
+
+    })
+
+
+    output$cover_composition_view <- DT::renderDT({
+
+      cover_compositions_reactive()
+
+    },
+    class     = "cell-border stripe",
+    escape    = FALSE,
+    selection = "none",
+    rownames  = FALSE,
+    options   = list(
+      columnDefs = list(
+        list(
+          targets   = c(0),
+          width     = "100px"
           ),
-        column(
-          width = 2,
-          numericInput(
-            ns("new_cover_observation_amount"),
-            label = "amount",
-            value = NULL,
-            min = 0,
-            max = 1,
-            step = 0.1
-            )
-          ),
-          column(
-            width = 2,
-            style = "margin-top: 25px",
-            actionButton(
-              ns("add_new_cover_observation"),
-              label = "add new"
-            )
-          ) # close last column
-        ), # close fluidRow
-      tags$br(),
-      tags$br(),
-      tags$br(),
-      tags$br(),
-      tags$br()
-      ) # close tag list
-
-  })
+        # list(
+        #   targets   = c(1),
+        #   visible   = FALSE
+        #   ),
+        list(
+          targets   = c(0),
+          className = "dt-center"
+        )
+        ),
+      bFilter       = FALSE,
+      bLengthChange = FALSE,
+      bPaginate     = FALSE,
+      autoWidth     = FALSE
+    )
+    ) # close cover_composition_view
 
 
-  observeEvent(input$add_new_cover_observation, {
+    # delete cover composition observation -----------------------------------------
 
-    validate(
-      need(!is.null(input$new_cover_observation_type), "add a type"),
-      need(!is.null(input$new_cover_observation_amount), "add an amount"),
-      need(input$new_cover_observation_amount != 0, "amount cannot be zero"),
-      need(
-        input$new_cover_observation_amount <= 1,
-        message = "amount must be <= 1"
+
+
+    # add new cover composition observation ----------------------------------------
+
+    add_composition_counter <- shiny::reactiveVal(value = 0)
+
+    shiny::observeEvent(input$add_cover_composition, {
+
+      id <- add_composition_counter()
+
+      module_cover_composition_new(
+        id                  = paste0("add_composition", id),
+        modal_title         = "add cover composition",
+        ce_id               = ce_to_populate()$id,
+        composition_to_edit = function() NULL
       )
+
+      add_composition_counter(id + 1) # increment module counter
+
+      if (add_composition_counter() > 1) {
+
+        remove_shiny_inputs(ns(paste0("add_composition", id)), input)
+        remove_shiny_inputs(ns(paste0("add_composition", id, "-add_composition", id)), input)
+
+      }
+
+    },
+    once       = FALSE,
+    ignoreInit = TRUE
     )
 
-    base_query <- "
-    INSERT INTO urbancndep.cover_composition
-    (
-      cover_event_id,
-      cover_type_id,
-      cover_amt
-    )
-    VALUES
-    (
-      ?submitted_cover_event_id,
-      ?submitted_cover_type_id,
-      ?submitted_cover_amt
-    ) ;
-    "
 
-    this_cover_event_id <- as.integer(cover_event_ID())
-    this_cover_type_id <- glue::glue_sql("{cover_types[cover_types$cover_type %in% c(input$new_cover_observation_type), ]$cover_type_id*}", .con = DBI::ANSI())
-    this_observation_amount <- as.numeric(input$new_cover_observation_amount)
+    # edit cover composition
 
-    parameterized_query <- sqlInterpolate(
-      ANSI(),
-      base_query,
-      submitted_cover_event_id = this_cover_event_id,
-      submitted_cover_type_id = this_cover_type_id,
-      submitted_cover_amt = this_observation_amount
-    )
+    this_composition_to_edit <- shiny::eventReactive(input$cover_composition_to_edit, {
 
-    run_interpolated_execution(parameterized_query)
+      this_composition <- query_cover_composition(cover_id = input$cover_composition_to_edit)
 
-    # change listener state when deleting a record
-    listen_cover_composition$db_version <- isolate(listen_cover_composition$db_version + 1)
+      return(this_composition)
 
-    # reset values of input form (not working)
+    })
 
-    updateSelectizeInput(
-      session,
-      inputId = "new_cover_observation_type",
-      label = "cover type",
-      choices = c(cover_types$cover_type),
-      selected = NULL
-    )
-    updateNumericInput(
-      session,
-      inputId = "new_cover_observation_amount",
-      label = "amount",
-      value = NULL
+    edit_composition_counter <- shiny::reactiveVal(value = 0)
+
+    shiny::observeEvent(input$cover_composition_to_edit, {
+
+      id <- edit_composition_counter()
+
+      module_cover_composition_new(
+        id                  = paste0("edit_composition", id),
+        modal_title         = "edit cover composition",
+        composition_to_edit = this_composition_to_edit
+      )
+
+      edit_composition_counter(id + 1) # increment module counter
+
+      if (edit_composition_counter() > 1) {
+
+        remove_shiny_inputs(ns(paste0("edit_composition", id)), input)
+        remove_shiny_inputs(ns(paste0("edit_composition", id, "-edit_composition", id)), input)
+
+      }
+
+    },
+    once       = FALSE,
+    ignoreInit = TRUE
     )
 
-    }) # close observe add_new_cover_observation
+    
+    # debugging: module level -------------------------------------------------
 
+    # print(head(taxa))
+    # observe(print({ this_composition_to_edit() }))
+    # observe(print({ tse_to_populate() }))
+    # observe(print({ input$trap_specimen_id_to_edit }))
 
-# new observation UI dressing --------------------------------------------------
-
-  # render module details if module is called
-
-  output$cover_composition_styling <- renderUI({
-
-    tagList(
-      hr(),
-      p("cover observations",
-        style = "text-align: left; background-color: LightGray; color: black;")
-    )
-
-  })
-
-} # close module cover_composition
+  }) # close module sever
+} # close module function
