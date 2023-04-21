@@ -68,47 +68,46 @@ insert_new_or_update_ce <- function(
 
   }
 
-  print(parameterized_query)
   run_interpolated_execution(parameterized_query)
 
 }
 
 
-add_cover_event <- function(
-  cover_event_plot,
-  cover_event_position,
-  cover_event_subplot,
-  cover_event_collector,
-  cover_event_date
-  ) {
+# add_cover_event <- function(
+#   cover_event_plot,
+#   cover_event_position,
+#   cover_event_subplot,
+#   cover_event_collector,
+#   cover_event_date
+#   ) {
 
-  cover_event_year <- as.integer(lubridate::year(cover_event_date))
+#   cover_event_year <- as.integer(lubridate::year(cover_event_date))
 
-  parameterized_query <- glue::glue_sql("
-    INSERT INTO urbancndep.cover_events
-    (
-      sample_date,
-      year,
-      plot,
-      patch_type,
-      subplot,
-      collector
-    )
-    VALUES
-    (
-      { cover_event_date },
-      { cover_event_year },
-      { cover_event_plot },
-      { cover_event_position },
-      { cover_event_subplot },
-      { cover_event_collector }
-    )
-    ;
-    ",
-    .con = DBI::ANSI()
-  )
+#   parameterized_query <- glue::glue_sql("
+#     INSERT INTO urbancndep.cover_events
+#     (
+#       sample_date,
+#       year,
+#       plot,
+#       patch_type,
+#       subplot,
+#       collector
+#     )
+#     VALUES
+#     (
+#       { cover_event_date },
+#       { cover_event_year },
+#       { cover_event_plot },
+#       { cover_event_position },
+#       { cover_event_subplot },
+#       { cover_event_collector }
+#     )
+#     ;
+#     ",
+#     .con = DBI::ANSI()
+#   )
 
-  # print(parameterized_query)
-  run_interpolated_execution(parameterized_query)
+#   # print(parameterized_query)
+#   run_interpolated_execution(parameterized_query)
 
-}
+# }

@@ -14,7 +14,6 @@ module_cover_event_new <- function(
   shiny::moduleServer(id, function(input, output, session) {
 
     ns <- session$ns
-    message("from ce new: ", session$ns(id))
 
     # UI -----------------------------------------------------------------------
 

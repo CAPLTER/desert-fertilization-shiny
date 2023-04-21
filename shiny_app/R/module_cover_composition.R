@@ -3,6 +3,11 @@
 #' @description The module cover composition facilitates adding, deleting, and
 #' editing Desert Fertilization cover composition data.
 #'
+#' @note In other, similar applications, deleting an observation is wrapped in
+#' a \code{tryCatch} even though \code{tryCatch} is a part of
+#' \code{run_interpolated_execution}. I cannot recall why that was done in
+#' other circumstances. It was not implemented here and seems to work fine.
+#'
 #' @export
 
 # cover composition UI ---------------------------------------------------------
@@ -72,8 +77,6 @@ cover_composition <- function(id, ce_to_populate) {
 
     # added to facilitate renderUIs
     ns <- session$ns
-
-    message("from mcc ", session$ns(id))
 
     # query cover event details for reference
     cover_event_details_reactive <- shiny::reactive({
@@ -169,10 +172,6 @@ cover_composition <- function(id, ce_to_populate) {
     ) # close cover_composition_view
 
 
-    # delete cover composition observation -----------------------------------------
-
-
-
     # add new cover composition observation ----------------------------------------
 
     add_composition_counter <- shiny::reactiveVal(value = 0)
@@ -239,8 +238,19 @@ cover_composition <- function(id, ce_to_populate) {
     ignoreInit = TRUE
     )
 
+
+    # delete cover composition observation -------------------------------------
+
+    shiny::observeEvent(input$cover_composition_to_delete, {
+
+      delete_cover_composition(cc_id = input$cover_composition_to_delete)
+
+      listener_trigger("update_composition")
+
+    }) # close delete cover composition
+
     
-    # debugging: module level -------------------------------------------------
+    # debugging: module level --------------------------------------------------
 
     # print(head(taxa))
     # observe(print({ this_composition_to_edit() }))
