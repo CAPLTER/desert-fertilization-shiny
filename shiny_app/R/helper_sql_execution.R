@@ -81,7 +81,7 @@ run_interpolated_execution <- function(
 
     shiny::showNotification(
       ui          = paste("there is a warning:  ", warn),
-      duration    = NULL,
+      duration    = 8,
       closeButton = TRUE,
       type        = "warning"
     )
@@ -92,7 +92,7 @@ run_interpolated_execution <- function(
 
     shiny::showNotification(
       ui          = paste("there was an error:  ", err),
-      duration    = NULL,
+      duration    = 8,
       closeButton = TRUE,
       type        = "error"
     )

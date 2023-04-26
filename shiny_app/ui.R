@@ -31,6 +31,11 @@ ui <- shiny::tagList(
     shiny::tabPanel(
       title = "annuals cover",
       cover_eventsUI("cover_events")
+    ),
+
+    shiny::tabPanel(
+      title = "annuals biomass",
+      annuals_biomassUI("annuals_biomass")
     )
 
   ) # close navbarPage

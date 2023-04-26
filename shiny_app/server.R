@@ -8,6 +8,7 @@ server <- function(input, output, session) {
   # listeners
 
   listener_init("update_composition")
+  listener_init("update_annuals_biomass")
 
 
   # modules -------------------------------------------------------------------
@@ -17,7 +18,7 @@ server <- function(input, output, session) {
   upload_chn("upload_chn", tab = tabID)
   chemistry_data("chemistry_data")
   cover_events("cover_events")
-
+  annuals_biomass("annuals_biomass")
 
   # debugging -----------------------------------------------------------------
 

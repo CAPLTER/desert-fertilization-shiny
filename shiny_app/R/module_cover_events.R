@@ -4,6 +4,8 @@
 #' Fertilization annuals cover data. This interface is written explicity as a
 #' data-entry tool and purposefully omits more sophisiticated data querying and
 #' viewing functionality.
+#'
+#' @export
 
 # UI ---------------------------------------------------------------------------
 
@@ -118,6 +120,7 @@ cover_events <- function(id) {
 
     },
     class     = c("compact" ,"cell-border stripe"),
+    plugin    = c("ellipsis"),
     escape    = FALSE,
     selection = "none",
     rownames  = FALSE,
@@ -127,13 +130,13 @@ cover_events <- function(id) {
           targets   = c(0),
           width     = "100px"
           ),
-        # list(
-        #   targets   = c(1),
-        #   visible   = FALSE
-        #   ),
         list(
           targets   = c(0),
           className = "dt-center"
+        ),
+        list(
+          targets   = c(9),
+          render    = JS("$.fn.dataTable.render.ellipsis(30)")
         )
         ),
       bFilter       = FALSE,
@@ -191,7 +194,8 @@ cover_events <- function(id) {
 
       if (edit_counter() > 1) {
 
-        remove_shiny_inputs(paste0("cover_events-edit_cover_event", id, "-edit_cover_event", id), input)
+        remove_shiny_inputs(ns(paste0("edit_cover_event", id)), input)
+        remove_shiny_inputs(ns(paste0("edit_cover_event", id, "-edit_cover_event", id)), input)
 
       }
 
@@ -219,7 +223,6 @@ cover_events <- function(id) {
 
       if (add_counter() > 1) {
 
-        # remove_shiny_inputs(paste0("cover_events-add_cover_event", id, "-add_cover_event", id), input)
         remove_shiny_inputs(ns(paste0("add_cover_event", id)), input)
         remove_shiny_inputs(ns(paste0("add_cover_event", id, "-add_cover_event", id)), input)
 
@@ -243,6 +246,7 @@ cover_events <- function(id) {
 
     })
 
+
     populate_counter <- shiny::reactiveVal(value = 0)
 
     shiny::observeEvent(input$cover_event_to_populate, {
@@ -250,9 +254,11 @@ cover_events <- function(id) {
       id            <- populate_counter()
       ce_element_id <- paste0("ce_element_", id)
 
+      message("from populate: ", ce_element_id)
+
       shiny::insertUI(
         selector = "#add_cover_compositions",
-        where    = "beforeBegin",
+        where    = "afterBegin",
         ui       = tags$div(
           id = ce_element_id,
           cover_compositionUI(ns(paste0("cover_composition_inventory", id)))
@@ -264,6 +270,7 @@ cover_events <- function(id) {
         ce_to_populate = this_ce_to_populate
       )
 
+      # increment module counter
       populate_counter(populate_counter() + 1)
 
       if (populate_counter() > 1) {
@@ -278,46 +285,6 @@ cover_events <- function(id) {
     once       = FALSE,
     ignoreInit = TRUE
     )
-
-    # establish counter for removing module UIs
-    # cover_composition_counter <- shiny::reactiveVal(value = 0)
-
-    # # action on modify cover event
-
-    # shiny::observeEvent(input$button_modify_cover_event, {
-
-    #   # module counter
-    #   cover_composition_module_id <- cover_composition_counter()
-
-    #   # unique element id based on module counter
-    #   cover_element_id <- paste0("cover_element_id_", cover_composition_module_id)
-
-    #   # insert composition module at placeholder with a unique ID;
-    #   # wrap UIs in a div so we can easily call the div tag id to selectively
-    #   # remove the module UIs
-    #   shiny::insertUI(
-    #     selector = "#add_cover_compositions",
-    #     where    = "beforeBegin",
-    #     ui       = tags$div(
-    #       id = cover_element_id,
-    #       cover_composition_UI(ns(paste0("cover_event", cover_composition_module_id)))
-    #     )
-    #   )
-
-    #   # call cover composition module with unique id
-    #   callModule(
-    #     module         = cover_composition,
-    #     id             = paste0("cover_event", cover_composition_module_id),
-    #     cover_event_ID = reactive({ input$button_modify_cover_event })
-    #   )
-
-    #   # increment module counter
-    #   cover_composition_counter(cover_composition_module_id + 1)
-
-    #   # remove composition module if one already exist
-    #   if (cover_composition_counter() > 1) { shiny::removeUI(selector = paste0("#", cover_element_id)) }
-
-    # })
 
 
     # debugging: module level --------------------------------------------------
