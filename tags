@@ -71,6 +71,7 @@
 #readme_box	shiny_app/www/custom.css	/^#readme_box {$/;"	i
 #samplesLeftPanel	shiny_app/www/custom.css	/^#samplesLeftPanel   { background: #D3D3D3; color: #484848; }$/;"	i
 .con	shiny_app/R/helper_delete_cover_composition.R	/^    .con = DBI::ANSI()$/;"	v	function:delete_cover_composition
+.con	shiny_app/R/helper_insert_annual_biomass.R	/^      .con = DBI::ANSI()$/;"	v	function:insert_new_or_update_ab
 .con	shiny_app/R/helper_insert_cover_composition.R	/^      .con = DBI::ANSI()$/;"	v	function:insert_new_or_update_cc
 .con	shiny_app/R/helper_insert_cover_event.R	/^      .con = DBI::ANSI()$/;"	v	function:insert_new_or_update_ce
 .con	shiny_app/R/helper_insert_fertilizer.R	/^    .con = DBI::ANSI()$/;"	v	function:add_fertilizer
@@ -118,6 +119,7 @@ add_counter	shiny_app/R/module_cover_events.R	/^    add_counter <- shiny::reacti
 add_fertilizer	shiny_app/R/helper_insert_fertilizer.R	/^add_fertilizer <- function($/;"	f
 align	shiny_app/R/module_annuals_biomass.R	/^        align = "middle",$/;"	v	function:annuals_biomassUI
 align	shiny_app/R/module_cover_events.R	/^        align = "middle",$/;"	v	function:cover_eventsUI
+annual_biomass_year	shiny_app/R/helper_insert_annual_biomass.R	/^  annual_biomass_year     <- as.integer(lubridate::year(annual_biomass_date))$/;"	v	function:insert_new_or_update_ab
 annuals	README.md	/^#### annuals$/;"	t	subsection:desert-fertilization-shiny""shiny app for viewing and loading selected desert fertilization data
 annuals_biomass	shiny_app/R/module_annuals_biomass.R	/^annuals_biomass <- function(id) {$/;"	f
 annuals_biomassUI	shiny_app/R/module_annuals_biomass.R	/^annuals_biomassUI <- function(id) {$/;"	f
@@ -142,14 +144,16 @@ anonFunc452e579b0200	shiny_app/R/helper_upload_chemistry.R	/^  }, warning = func
 anonFunc580cfad90100	shiny_app/R/helper_remove_shiny_inputs.R	/^      function(i) {$/;"	f	function:remove_shiny_inputs
 anonFunc599bcac40100	shiny_app/R/module_annuals_biomass.R	/^  shiny::moduleServer(id, function(input, output, session) {$/;"	f	function:annuals_biomass
 anonFunc599bcac40200	shiny_app/R/module_annuals_biomass.R	/^        actions <- purrr::map_chr(annuals_biomass_data$id, function(id_) {$/;"	f	function:annuals_biomass.anonFunc599bcac40100
-anonFunc599bcac40500	shiny_app/R/module_annuals_biomass.R	/^        ce_to_edit    = function() NULL$/;"	f	function:annuals_biomass.anonFunc599bcac40100
+anonFunc599bcac40600	shiny_app/R/module_annuals_biomass.R	/^        ab_to_edit    = function() NULL$/;"	f	function:annuals_biomass.anonFunc599bcac40100
 anonFunc6638aa2a0100	shiny_app/R/module_resin_upload.R	/^  shiny::moduleServer(id, function(input, output, session) {$/;"	f	function:upload_resin
 anonFunc6638aa2a0200	shiny_app/R/module_resin_upload.R	/^      unlist(lapply(seq_len(len), function(i) {$/;"	f	function:upload_resin.anonFunc6638aa2a0100.shinyValue
+anonFunc78cc646d0100	shiny_app/R/module_annuals_biomass_new.R	/^  shiny::moduleServer(id, function(input, output, session) {$/;"	f	function:module_annual_biomass_new
+anonFunc78cc646d0200	shiny_app/R/module_annuals_biomass_new.R	/^    iv$add_rule("new_biomass_date", function(value) {$/;"	f	function:module_annual_biomass_new.anonFunc78cc646d0100
 anonFunc872120020100	shiny_app/R/module_chn_upload.R	/^  shiny::moduleServer(id, function(input, output, session) {$/;"	f	function:upload_chn
 anonFunc872120020200	shiny_app/R/module_chn_upload.R	/^      unlist(lapply(seq_len(len), function(i) {$/;"	f	function:upload_chn.anonFunc872120020100.shinyValue
 anonFunc8e21c4f80100	shiny_app/R/module_cover_events.R	/^  shiny::moduleServer(id, function(input, output, session) {$/;"	f	function:cover_events
 anonFunc8e21c4f80200	shiny_app/R/module_cover_events.R	/^        actions <- purrr::map_chr(cover_events_data$id, function(id_) {$/;"	f	function:cover_events.anonFunc8e21c4f80100
-anonFunc8e21c4f80500	shiny_app/R/module_cover_events.R	/^        ce_to_edit    = function() NULL$/;"	f	function:cover_events.anonFunc8e21c4f80100
+anonFunc8e21c4f80600	shiny_app/R/module_cover_events.R	/^        ce_to_edit    = function() NULL$/;"	f	function:cover_events.anonFunc8e21c4f80100
 anonFunc9bcd70560100	shiny_app/R/module_chemistry_data.R	/^  shiny::moduleServer(id, function(input, output, session) {$/;"	f	function:chemistry_data
 anonFuncdb0fb5250100	shiny_app/R/module_fertilizer.R	/^  shiny::moduleServer(id, function(input, output, session) {$/;"	f	function:fertilizer
 anonFuncdb0fb5250200	shiny_app/R/module_fertilizer.R	/^    iv$add_rule("fertilizerDate", function(value) {$/;"	f	function:fertilizer.anonFuncdb0fb5250100
@@ -160,11 +164,13 @@ anonList0c28c1970307	shiny_app/R/module_cover_composition.R	/^        list($/;"	
 anonList0c28c1970407	shiny_app/R/module_cover_composition.R	/^        list($/;"	L	nameattr:cover_composition.anonFunc0c28c1970100.options.columnDefs
 anonList599bcac40307	shiny_app/R/module_annuals_biomass.R	/^        list($/;"	L	nameattr:annuals_biomass.anonFunc599bcac40100.options.columnDefs
 anonList599bcac40407	shiny_app/R/module_annuals_biomass.R	/^        list($/;"	L	nameattr:annuals_biomass.anonFunc599bcac40100.options.columnDefs
+anonList599bcac40507	shiny_app/R/module_annuals_biomass.R	/^        list($/;"	L	nameattr:annuals_biomass.anonFunc599bcac40100.options.columnDefs
 anonList6638aa2a0407	shiny_app/R/module_resin_upload.R	/^        list($/;"	L	nameattr:upload_resin.anonFunc6638aa2a0100.options.columnDefs
 anonList872120020307	shiny_app/R/module_chn_upload.R	/^        list($/;"	L	nameattr:upload_chn.anonFunc872120020100.options.columnDefs
 anonList872120020407	shiny_app/R/module_chn_upload.R	/^        list($/;"	L	list:columnDefs
 anonList8e21c4f80307	shiny_app/R/module_cover_events.R	/^        list($/;"	L	nameattr:cover_events.anonFunc8e21c4f80100.options.columnDefs
 anonList8e21c4f80407	shiny_app/R/module_cover_events.R	/^        list($/;"	L	nameattr:cover_events.anonFunc8e21c4f80100.options.columnDefs
+anonList8e21c4f80507	shiny_app/R/module_cover_events.R	/^        list($/;"	L	nameattr:cover_events.anonFunc8e21c4f80100.options.columnDefs
 anonVec045c0e970406	archive/app.R	/^      left_join(resinSamplesFrame, by = c("Sample ID" = "resinSamples")) %>%$/;"	c	function:server
 anonVec286ea14e0306	shiny_app/R/module_cover_event_new.R	/^        cover_event_collector = paste0(c(input$new_cover_event_collector), collapse = "; "),$/;"	c	function:module_cover_event_new.anonFunc286ea14e0100
 anonymousFunction0dded6420100	shiny_app/www/annuals_biomass_module.js	/^  $("#" + ns_prefix + "annuals_biomass_view").on("click", ".delete_btn", function() {$/;"	f
@@ -244,13 +250,13 @@ batchUploadNext	shiny_app/R/helper_upload_resin.R	/^    batchUploadNext <- as.nu
 build_insert_raw_query	shiny_app/R/helper_insert_raw.R	/^build_insert_raw_query <- function(currentTab) {$/;"	f
 by	shiny_app/R/module_chn_upload.R	/^        by = c("plot_id")$/;"	c	function:upload_chn.anonFunc872120020100
 by	shiny_app/R/module_resin_upload.R	/^        by = c("sample_id" = "resinSamples")$/;"	c	function:upload_resin.anonFunc6638aa2a0100
-ce_element_id	shiny_app/R/module_annuals_biomass.R	/^      ce_element_id <- paste0("ce_element_", id)$/;"	v	function:annuals_biomass.anonFunc599bcac40100
 ce_element_id	shiny_app/R/module_cover_events.R	/^      ce_element_id <- paste0("ce_element_", id)$/;"	v	function:cover_events.anonFunc8e21c4f80100
 check_sample_ids	shiny_app/R/helper_check_sample_ids.R	/^check_sample_ids <- function(data_to_validate) { $/;"	f
 chemistry_data	shiny_app/R/module_chemistry_data.R	/^        chemistry_data <- query_resin()$/;"	v	function:chemistry_data.anonFunc9bcd70560100
 chemistry_data	shiny_app/R/module_chemistry_data.R	/^chemistry_data <- function(id, tab = NULL) {$/;"	f
 chemistry_dataUI	shiny_app/R/module_chemistry_data.R	/^chemistry_dataUI <- function(id) {$/;"	f
 chemistry_data_reactive	shiny_app/R/module_chemistry_data.R	/^    chemistry_data_reactive <- shiny::eventReactive(input$data_source, {$/;"	v	function:chemistry_data.anonFunc9bcd70560100
+choices	shiny_app/R/module_annuals_biomass_new.R	/^              choices   = cover_sites_plots["plot_id"],$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 choices	shiny_app/R/module_chemistry_data.R	/^            choices   = c("resin", "chn"),$/;"	c	function:chemistry_dataUI
 choices	shiny_app/R/module_chn_upload.R	/^              choices   = c("larrea", "pectocarya"),$/;"	c	function:upload_chnUI
 choices	shiny_app/R/module_cover_composition_new.R	/^              choices   = c(cover_types[["cover_type"]]),$/;"	c	function:module_cover_composition_new.anonFunc03ce8cc00100
@@ -258,6 +264,7 @@ choices	shiny_app/R/module_cover_event_new.R	/^              choices   = cover_s
 choices	shiny_app/R/module_fertilizer.R	/^              choices   = desfert_sites[["code"]],$/;"	v	function:fertilizerUI
 class	shiny_app/R/module_annuals_biomass.R	/^            class   = "btn-success",$/;"	v	function:annuals_biomassUI
 class	shiny_app/R/module_annuals_biomass.R	/^    class     = c("compact" ,"cell-border stripe"),$/;"	c	function:annuals_biomass.anonFunc599bcac40100
+class	shiny_app/R/module_annuals_biomass_new.R	/^            class   = "btn btn-primary",$/;"	n	list:module_annual_biomass_new.anonFunc78cc646d0100.footer
 class	shiny_app/R/module_chemistry_data.R	/^    class      = c("compact" ,"cell-border stripe"),$/;"	c	function:chemistry_data.anonFunc9bcd70560100
 class	shiny_app/R/module_chn_upload.R	/^              class   = "btn-success",$/;"	v	function:upload_chnUI
 class	shiny_app/R/module_chn_upload.R	/^    class      = "cell-border stripe",$/;"	v	function:upload_chn.anonFunc872120020100
@@ -341,8 +348,8 @@ drawCallback	shiny_app/R/module_chn_upload.R	/^      drawCallback    = JS('funct
 drawCallback	shiny_app/R/module_resin_upload.R	/^      drawCallback    = JS('function() {$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options
 drv	shiny_app/global.R	/^  drv      = RPostgreSQL::PostgreSQL(),$/;"	g
 duration	shiny_app/R/helper_sql_execution.R	/^        duration    = NULL,$/;"	v	function:run_interpolated_execution
-duration	shiny_app/R/helper_sql_execution.R	/^      duration    = NULL,$/;"	v	function:run_interpolated_execution.anonFunc28bd9ca20200
-duration	shiny_app/R/helper_sql_execution.R	/^      duration    = NULL,$/;"	v	function:run_interpolated_execution.anonFunc28bd9ca20200.error
+duration	shiny_app/R/helper_sql_execution.R	/^      duration    = 8,$/;"	v	function:run_interpolated_execution.anonFunc28bd9ca20200
+duration	shiny_app/R/helper_sql_execution.R	/^      duration    = 8,$/;"	v	function:run_interpolated_execution.anonFunc28bd9ca20200.error
 duration	shiny_app/R/helper_sql_execution.R	/^      duration    = NULL,$/;"	v	function:run_interpolated_query.anonFunc28bd9ca20100
 duration	shiny_app/R/helper_sql_execution.R	/^      duration    = NULL,$/;"	v	function:run_interpolated_query.anonFunc28bd9ca20100.error
 duration	shiny_app/R/helper_upload_chemistry.R	/^      duration    = NULL,$/;"	v	function:upload_chemistry
@@ -350,6 +357,7 @@ duration	shiny_app/R/helper_upload_chemistry.R	/^      duration    = NULL,$/;"	v
 duration	shiny_app/R/helper_upload_chemistry.R	/^      duration    = NULL,$/;"	v	function:upload_chemistry.anonFunc452e579b0200.error
 duration	shiny_app/R/module_chn_upload.R	/^          duration    = NULL,$/;"	v	function:upload_chn.anonFunc872120020100
 duration	shiny_app/R/module_resin_upload.R	/^          duration    = NULL,$/;"	v	function:upload_resin.anonFunc6638aa2a0100
+easyClose	shiny_app/R/module_annuals_biomass_new.R	/^        easyClose = TRUE$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 easyClose	shiny_app/R/module_cover_composition_new.R	/^        easyClose = TRUE$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 easyClose	shiny_app/R/module_cover_event_new.R	/^        easyClose = TRUE$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 edit_composition_counter	shiny_app/R/module_cover_composition.R	/^    edit_composition_counter <- shiny::reactiveVal(value = 0)$/;"	v	function:cover_composition.anonFunc0c28c1970100
@@ -393,14 +401,17 @@ fixedHeader	shiny_app/R/module_chn_upload.R	/^      fixedHeader     = FALSE,$/;"
 fixedHeader	shiny_app/R/module_fertilizer.R	/^      fixedHeader   = FALSE,$/;"	n	list:fertilizer.anonFuncdb0fb5250100.options
 fixedHeader	shiny_app/R/module_resin_upload.R	/^      fixedHeader     = FALSE,$/;"	g
 fixedHeader	shiny_app/R/module_resin_upload.R	/^      fixedHeader     = FALSE,$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options
+footer	shiny_app/R/module_annuals_biomass_new.R	/^        footer = list($/;"	L	function:module_annual_biomass_new.anonFunc78cc646d0100
 footer	shiny_app/R/module_cover_composition_new.R	/^        footer = list($/;"	L	function:module_cover_composition_new.anonFunc03ce8cc00100
 footer	shiny_app/R/module_cover_event_new.R	/^        footer = list($/;"	L	function:module_cover_event_new.anonFunc286ea14e0100
+format	shiny_app/R/module_annuals_biomass_new.R	/^              format  = "yyyy-mm-dd",$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 format	shiny_app/R/module_cover_event_new.R	/^              format  = "yyyy-mm-dd",$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 format	shiny_app/R/module_fertilizer.R	/^              format  = "yyyy-mm-dd"$/;"	v	function:fertilizerUI
 format_chn	shiny_app/R/helper_format_chn.R	/^format_chn <- function($/;"	f
 format_lachat	shiny_app/R/helper_format_lachat.R	/^format_lachat <- function($/;"	f
 formattedLachat	archive/app.R	/^    formattedLachat <- format_lachat(lachatData = lachatImport,$/;"	v	function:server
 func	shiny_app/R/helper_sql_execution.R	/^      func = function(conn) {$/;"	f	function:run_interpolated_execution
+hold	shiny_app/R/module_annuals_biomass_new.R	/^    hold <- ab_to_edit()$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 hold	shiny_app/R/module_cover_composition_new.R	/^    hold <- composition_to_edit()$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 hold	shiny_app/R/module_cover_event_new.R	/^    hold <- ce_to_edit()$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 host	shiny_app/global.R	/^  host     = this_configuration$host,$/;"	g
@@ -418,6 +429,7 @@ icon	shiny_app/R/module_fertilizer.R	/^              icon    = shiny::icon("plus
 icon	shiny_app/R/module_resin_upload.R	/^              icon    = shiny::icon("plus"),$/;"	v	function:upload_resinUI
 id	archive/module_resin_viewer.R	/^ResinViewer1 <- ResinViewer$new(id = "resin_display")$/;"	g
 id	shiny_app/R/module_annuals_biomass.R	/^      id <- edit_counter()$/;"	v	function:annuals_biomass.anonFunc599bcac40100
+id	shiny_app/R/module_annuals_biomass_new.R	/^            id     = "col_add_survey_left",$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 id	shiny_app/R/module_cover_composition.R	/^      id <- add_composition_counter()$/;"	v	function:cover_composition.anonFunc0c28c1970100
 id	shiny_app/R/module_cover_composition_new.R	/^            id     = "none",$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 id	shiny_app/R/module_cover_event_new.R	/^            id     = "col_add_survey_left",$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
@@ -433,6 +445,8 @@ ignoreInit	shiny_app/R/module_resin_upload.R	/^      ignoreInit = FALSE,$/;"	v	f
 imported_mode_types	shiny_app/R/module_chn_upload.R	/^      imported_mode_types <- unique(data_import[["Mode"]])$/;"	v	function:upload_chn.anonFunc872120020100
 imported_sample_types	shiny_app/R/module_resin_upload.R	/^      imported_sample_types <- unique(lachat_import[["Sample Type"]])$/;"	v	function:upload_resin.anonFunc6638aa2a0100
 inputId	shiny_app/R/module_annuals_biomass.R	/^            inputId = ns("add_new_biomass"),$/;"	v	function:annuals_biomassUI
+inputId	shiny_app/R/module_annuals_biomass_new.R	/^              inputId   = ns("new_biomass_plot"),$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
+inputId	shiny_app/R/module_annuals_biomass_new.R	/^            inputId = ns("submit"),$/;"	n	list:module_annual_biomass_new.anonFunc78cc646d0100.footer
 inputId	shiny_app/R/module_chemistry_data.R	/^            inputId   = ns("data_source"),$/;"	v	function:chemistry_dataUI
 inputId	shiny_app/R/module_chn_upload.R	/^              inputId   = ns("tissue_type"),$/;"	v	function:upload_chnUI
 inputId	shiny_app/R/module_cover_composition.R	/^          inputId = ns("add_cover_composition"),$/;"	v	function:cover_compositionUI
@@ -447,15 +461,19 @@ inputs	archive/app.R	/^    inputs = character(len)$/;"	v	function:server.shinyIn
 inputs	shiny_app/R/helper_shiny_input.R	/^    inputs <- character(len)$/;"	v	function:shinyInput
 inputs	shiny_app/R/helper_shiny_input.R	/^    inputs <- character(len)$/;"	v	function:shinyInputFlex
 inputs	shiny_app/R/helper_shiny_input.R	/^    inputs = character(len)$/;"	v	function:shinyInputOther
+insert_new_or_update_ab	shiny_app/R/helper_insert_annual_biomass.R	/^insert_new_or_update_ab <- function($/;"	f
 insert_new_or_update_cc	shiny_app/R/helper_insert_cover_composition.R	/^insert_new_or_update_cc <- function($/;"	f
 insert_new_or_update_ce	shiny_app/R/helper_insert_cover_event.R	/^insert_new_or_update_ce <- function($/;"	f
 insert_raw_query	shiny_app/R/helper_prepare_raw.R	/^  insert_raw_query <- build_insert_raw_query(currentTab = analysis)$/;"	v	function:prepare_raw
 insert_raw_query	shiny_app/R/helper_upload_chemistry.R	/^    insert_raw_query <- prepare_raw($/;"	v	function:upload_chemistry
 insert_results_query	shiny_app/R/helper_upload_chemistry.R	/^    insert_results_query <- prepare_results($/;"	v	function:upload_chemistry
+iv	shiny_app/R/module_annuals_biomass_new.R	/^    iv <- shinyvalidate::InputValidator$new()$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 iv	shiny_app/R/module_cover_composition_new.R	/^    iv <- shinyvalidate::InputValidator$new()$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 iv	shiny_app/R/module_cover_event_new.R	/^    iv <- shinyvalidate::InputValidator$new()$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 iv	shiny_app/R/module_fertilizer.R	/^    iv <- shinyvalidate::InputValidator$new()$/;"	v	function:fertilizer.anonFuncdb0fb5250100
 label	shiny_app/R/module_annuals_biomass.R	/^            label   = "add biomass",$/;"	v	function:annuals_biomassUI
+label	shiny_app/R/module_annuals_biomass_new.R	/^              label     = "plot",$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
+label	shiny_app/R/module_annuals_biomass_new.R	/^            label   = "submit",$/;"	n	list:module_annual_biomass_new.anonFunc78cc646d0100.footer
 label	shiny_app/R/module_chemistry_data.R	/^            label     = "which data would you like to view?",$/;"	v	function:chemistry_dataUI
 label	shiny_app/R/module_chn_upload.R	/^              label     = "tissue type",$/;"	v	function:upload_chnUI
 label	shiny_app/R/module_cover_composition.R	/^          label   = "add cover",$/;"	v	function:cover_compositionUI
@@ -477,15 +495,19 @@ lachat_import	shiny_app/R/module_resin_upload.R	/^          lachat_import <- rea
 listener_init	shiny_app/R/helper_listener_utilities.R	/^listener_init <- function(name, session = shiny::getDefaultReactiveDomain()) {$/;"	f
 listener_trigger	shiny_app/R/helper_listener_utilities.R	/^listener_trigger <- function(name, session = shiny::getDefaultReactiveDomain()) {$/;"	f
 listener_watch	shiny_app/R/helper_listener_utilities.R	/^listener_watch <- function(name, session = shiny::getDefaultReactiveDomain()) {$/;"	f
+max	shiny_app/R/module_annuals_biomass_new.R	/^              max     = as.character(Sys.Date())$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 max	shiny_app/R/module_chn_upload.R	/^              max     = 2035,$/;"	v	function:upload_chnUI
 max	shiny_app/R/module_cover_composition_new.R	/^              max     = 1,$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 max	shiny_app/R/module_cover_event_new.R	/^              max     = as.character(Sys.Date())$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
+min	shiny_app/R/module_annuals_biomass_new.R	/^              min     = "2022-01-01",$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 min	shiny_app/R/module_chn_upload.R	/^              min     = 2015,$/;"	v	function:upload_chnUI
 min	shiny_app/R/module_cover_composition_new.R	/^              min     = 0,$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 min	shiny_app/R/module_cover_event_new.R	/^              min     = "2022-01-01",$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 min	shiny_app/R/module_fertilizer.R	/^              min     = 0$/;"	v	function:fertilizerUI
+module_annual_biomass_new	shiny_app/R/module_annuals_biomass_new.R	/^module_annual_biomass_new <- function($/;"	f
 module_cover_composition_new	shiny_app/R/module_cover_composition_new.R	/^module_cover_composition_new <- function($/;"	f
 module_cover_event_new	shiny_app/R/module_cover_event_new.R	/^module_cover_event_new <- function($/;"	f
+multiple	shiny_app/R/module_annuals_biomass_new.R	/^              multiple  = FALSE,$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 multiple	shiny_app/R/module_chemistry_data.R	/^            multiple  = FALSE,$/;"	v	function:chemistry_dataUI
 multiple	shiny_app/R/module_chn_upload.R	/^              multiple  = FALSE,$/;"	v	function:upload_chnUI
 multiple	shiny_app/R/module_cover_composition_new.R	/^              multiple  = FALSE,$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
@@ -502,6 +524,7 @@ notification_message	shiny_app/R/module_chn_upload.R	/^        notification_mess
 notification_message	shiny_app/R/module_resin_upload.R	/^        notification_message <- paste(sample_ids_message, collapse = " & ")$/;"	v	function:upload_resin.anonFunc6638aa2a0100
 ns	shiny_app/R/module_annuals_biomass.R	/^    ns <- session$ns # to facilitate renderUIs$/;"	v	function:annuals_biomass.anonFunc599bcac40100
 ns	shiny_app/R/module_annuals_biomass.R	/^  ns <- shiny::NS(id)$/;"	v	function:annuals_biomassUI
+ns	shiny_app/R/module_annuals_biomass_new.R	/^    ns <- session$ns$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 ns	shiny_app/R/module_chemistry_data.R	/^  ns <- shiny::NS(id)$/;"	v	function:chemistry_dataUI
 ns	shiny_app/R/module_chn_upload.R	/^  ns <- shiny::NS(id)$/;"	v	function:upload_chnUI
 ns	shiny_app/R/module_cover_composition.R	/^    ns <- session$ns$/;"	v	function:cover_composition.anonFunc0c28c1970100
@@ -513,6 +536,7 @@ ns	shiny_app/R/module_cover_events.R	/^  ns <- shiny::NS(id)$/;"	v	function:cove
 ns	shiny_app/R/module_fertilizer.R	/^    ns <- session$ns # to facilitate renderUIs$/;"	v	function:fertilizer.anonFuncdb0fb5250100
 ns	shiny_app/R/module_fertilizer.R	/^  ns <- shiny::NS(id)$/;"	v	function:fertilizerUI
 ns	shiny_app/R/module_resin_upload.R	/^  ns <- shiny::NS(id)$/;"	v	function:upload_resinUI
+offset	shiny_app/R/module_annuals_biomass_new.R	/^            offset = 1,$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 offset	shiny_app/R/module_cover_composition.R	/^        offset = 0,$/;"	v	function:cover_compositionUI
 offset	shiny_app/R/module_cover_composition_new.R	/^            offset = 1,$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 offset	shiny_app/R/module_cover_event_new.R	/^            offset = 1,$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
@@ -537,6 +561,7 @@ pageLength	shiny_app/R/module_chn_upload.R	/^      pageLength      = 50,     # s
 pageLength	shiny_app/R/module_fertilizer.R	/^      pageLength    = 50,$/;"	n	list:fertilizer.anonFuncdb0fb5250100.options
 pageLength	shiny_app/R/module_resin_upload.R	/^      pageLength      = 5,      # scroller$/;"	g
 pageLength	shiny_app/R/module_resin_upload.R	/^      pageLength      = 50,     # scroller$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options
+parameterized_query	shiny_app/R/helper_insert_annual_biomass.R	/^    parameterized_query <- glue::glue_sql("$/;"	v	function:insert_new_or_update_ab
 parameterized_query	shiny_app/R/helper_insert_cover_composition.R	/^    parameterized_query <- glue::glue_sql("$/;"	v	function:insert_new_or_update_cc
 parameterized_query	shiny_app/R/helper_insert_cover_event.R	/^    parameterized_query <- glue::glue_sql("$/;"	v	function:insert_new_or_update_ce
 parameterized_query	shiny_app/R/helper_insert_fertilizer.R	/^  parameterized_query <- glue::glue_sql("$/;"	v	function:add_fertilizer
@@ -559,13 +584,15 @@ parameterized_query	shiny_app/R/module_annuals_biomass.R	/^      parameterized_q
 parameterized_query	shiny_app/R/module_cover_events.R	/^      parameterized_query <- glue::glue_sql('$/;"	v	function:cover_events.anonFunc8e21c4f80100
 password	shiny_app/global.R	/^  password = this_configuration$password$/;"	g
 pg	shiny_app/R/helper_upload_resin.R	/^    pg <- database_connection()$/;"	v	function:data_upload
+placeholder	shiny_app/R/module_annuals_biomass_new.R	/^              placeholder = "free-text notes",$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 placeholder	shiny_app/R/module_resin_upload.R	/^              placeholder = "yyyy-mm-dd"$/;"	v	function:upload_resinUI
 plot_id	shiny_app/R/helper_format_chn.R	/^    plot_id      = as.integer($/;"	v	function:format_chn
+plugin	shiny_app/R/module_annuals_biomass.R	/^    plugin    = c("ellipsis"),$/;"	c	function:annuals_biomass.anonFunc599bcac40100
+plugin	shiny_app/R/module_cover_events.R	/^    plugin    = c("ellipsis"),$/;"	c	function:cover_events.anonFunc8e21c4f80100
 plugins	shiny_app/R/module_chemistry_data.R	/^    plugins    = c("ellipsis"),$/;"	c	function:chemistry_data.anonFunc9bcd70560100
 plugins	shiny_app/R/module_chn_upload.R	/^    plugins    = c("ellipsis"),$/;"	c	function:upload_chn.anonFunc872120020100
 plugins	shiny_app/R/module_resin_upload.R	/^    plugins    = c("ellipsis"),$/;"	c	function:upload_resin.anonFunc6638aa2a0100
 pool	shiny_app/R/helper_sql_execution.R	/^      pool = this_pool,$/;"	v	function:run_interpolated_execution
-populate_counter	shiny_app/R/module_annuals_biomass.R	/^    populate_counter <- shiny::reactiveVal(value = 0)$/;"	v	function:annuals_biomass.anonFunc599bcac40100
 populate_counter	shiny_app/R/module_cover_events.R	/^    populate_counter <- shiny::reactiveVal(value = 0)$/;"	v	function:cover_events.anonFunc8e21c4f80100
 preDrawCallback	archive/app.R	/^    preDrawCallback = JS('function() {$/;"	n	list:server.options
 preDrawCallback	shiny_app/R/module_chn_upload.R	/^      preDrawCallback = JS('function() {$/;"	n	list:upload_chn.anonFunc872120020100.options
@@ -604,13 +631,16 @@ raw_reactive	shiny_app/R/module_resin_upload.R	/^    raw_reactive <- shiny::reac
 rel	shiny_app/ui.R	/^    tags$link(rel = "stylesheet", type = "text\/css", href = "custom.css")$/;"	g
 remove_shiny_inputs	shiny_app/R/helper_remove_shiny_inputs.R	/^remove_shiny_inputs <- function(id, .input) {$/;"	f
 remove_table	shiny_app/R/helper_sql_execution.R	/^remove_table <- function(schema_name, table_name) {$/;"	f
+render	shiny_app/R/module_annuals_biomass.R	/^          render    = JS("$.fn.dataTable.render.ellipsis(25)")$/;"	n	list:annuals_biomass.anonFunc599bcac40100.options.columnDefs.anonList599bcac40507
 render	shiny_app/R/module_chn_upload.R	/^          render  = JS("$.fn.dataTable.render.ellipsis( 18 )")$/;"	n	list:columnDefs.anonList872120020407
 render	shiny_app/R/module_chn_upload.R	/^          render  = JS("$.fn.dataTable.render.ellipsis( 18 )")$/;"	n	list:upload_chn.anonFunc872120020100.options.columnDefs.anonList872120020307
+render	shiny_app/R/module_cover_events.R	/^          render    = JS("$.fn.dataTable.render.ellipsis(30)")$/;"	n	list:cover_events.anonFunc8e21c4f80100.options.columnDefs.anonList8e21c4f80507
 render	shiny_app/R/module_resin_upload.R	/^          render  = JS("$.fn.dataTable.render.ellipsis( 30 )")$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options.columnDefs.anonList6638aa2a0407
 resin	README.md	/^#### resin$/;"	t	subsection:desert-fertilization-shiny""shiny app for viewing and loading selected desert fertilization data
 resinDataUploadBaseQuery	shiny_app/R/helper_upload_resin.R	/^);'$/;"	g
 resinSamples	shiny_app/R/helper_list_resin_samples.R	/^  resinSamples = c($/;"	n	dataframe:resinSamplesFrame	constructor:c
 resinSamplesFrame	shiny_app/R/helper_list_resin_samples.R	/^resinSamplesFrame <- data.frame($/;"	d
+resize	shiny_app/R/module_annuals_biomass_new.R	/^              resize      = "vertical"$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 results_metadata	shiny_app/R/module_chn_upload.R	/^    results_metadata <- reactive({$/;"	v	function:upload_chn.anonFunc872120020100
 results_metadata	shiny_app/R/module_resin_upload.R	/^    results_metadata <- reactive({$/;"	v	function:upload_resin.anonFunc6638aa2a0100
 row.names	shiny_app/R/helper_prepare_raw.R	/^    row.names = FALSE$/;"	v	function:prepare_raw
@@ -650,6 +680,7 @@ searching	shiny_app/R/module_fertilizer.R	/^      searching     = FALSE$/;"	n	li
 searching	shiny_app/R/module_resin_upload.R	/^      searching       = FALSE$/;"	g
 searching	shiny_app/R/module_resin_upload.R	/^      searching       = FALSE,$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options
 seedDate	archive/app.R	/^    seedDate <- if (useDateSeed()) isolate(input$resinDateSeed) else NULL$/;"	v	function:server
+selected	shiny_app/R/module_annuals_biomass_new.R	/^              selected  = ifelse(is.null(hold), "", hold$plot_id),$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 selected	shiny_app/R/module_chemistry_data.R	/^            selected  = NULL,$/;"	v	function:chemistry_dataUI
 selected	shiny_app/R/module_chn_upload.R	/^              selected  = NULL,$/;"	v	function:upload_chnUI
 selected	shiny_app/R/module_cover_composition_new.R	/^              selected  = ifelse(is.null(hold), "", hold$cover_type),$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
@@ -663,12 +694,12 @@ selection	shiny_app/R/module_cover_composition.R	/^    selection = "none",$/;"	v
 selection	shiny_app/R/module_cover_events.R	/^    selection = "none",$/;"	v	function:cover_events.anonFunc8e21c4f80100
 selection	shiny_app/R/module_fertilizer.R	/^    selection  = "none",$/;"	v	function:fertilizer.anonFuncdb0fb5250100
 selection	shiny_app/R/module_resin_upload.R	/^    selection  = "none",$/;"	v	function:upload_resin.anonFunc6638aa2a0100
+selectize	shiny_app/R/module_annuals_biomass_new.R	/^              selectize = FALSE$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 selectize	shiny_app/R/module_chemistry_data.R	/^            selectize = FALSE$/;"	v	function:chemistry_dataUI
 selectize	shiny_app/R/module_chn_upload.R	/^              selectize = FALSE$/;"	v	function:upload_chnUI
 selectize	shiny_app/R/module_cover_composition_new.R	/^              selectize = FALSE # ensure selectize false$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 selectize	shiny_app/R/module_cover_event_new.R	/^              selectize = FALSE$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 selectize	shiny_app/R/module_fertilizer.R	/^              selectize = FALSE$/;"	v	function:fertilizerUI
-selector	shiny_app/R/module_annuals_biomass.R	/^        selector = "#add_cover_compositions",$/;"	v	function:annuals_biomass.anonFunc599bcac40100
 selector	shiny_app/R/module_cover_events.R	/^        selector = "#add_cover_compositions",$/;"	v	function:cover_events.anonFunc8e21c4f80100
 server	archive/app.R	/^  server = FALSE,$/;"	v	function:server
 server	archive/app.R	/^server <- function(input, output, session) {$/;"	f
@@ -684,6 +715,7 @@ shinyValue	archive/app.R	/^  shinyValue <- function(id, len) {$/;"	f	function:se
 shinyValue	shiny_app/R/helper_shiny_input.R	/^shinyValue <- function(id, len) {$/;"	f
 shinyValue	shiny_app/R/module_chn_upload.R	/^    shinyValue <- function(id, len) {$/;"	f	function:upload_chn.anonFunc872120020100
 shinyValue	shiny_app/R/module_resin_upload.R	/^    shinyValue <- function(id, len) {$/;"	f	function:upload_resin.anonFunc6638aa2a0100
+size	shiny_app/R/module_annuals_biomass_new.R	/^        size   = "l",$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 size	shiny_app/R/module_cover_composition_new.R	/^        size   = "l",$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 size	shiny_app/R/module_cover_event_new.R	/^        size   = "l",$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 skip	shiny_app/R/module_chn_upload.R	/^            skip      = 1$/;"	v	function:upload_chn.anonFunc872120020100
@@ -693,10 +725,12 @@ src	shiny_app/R/module_annuals_biomass.R	/^    tags$script(src = "annuals_biomas
 src	shiny_app/R/module_cover_composition.R	/^    tags$script(src = "cover_composition_module.js"),$/;"	v	function:cover_compositionUI
 src	shiny_app/R/module_cover_events.R	/^    tags$script(src = "cover_events_module.js"),$/;"	v	function:cover_eventsUI
 statement	shiny_app/R/helper_sql_execution.R	/^      statement = interpolatedQuery$/;"	v	function:run_interpolated_query
+step	shiny_app/R/module_annuals_biomass_new.R	/^              step    = 0.1$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 step	shiny_app/R/module_chn_upload.R	/^              step    = 1,$/;"	v	function:upload_chnUI
 step	shiny_app/R/module_cover_composition_new.R	/^              step    = 0.1$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 stringsAsFactors	shiny_app/R/helper_list_resin_samples.R	/^  stringsAsFactors = FALSE$/;"	n	dataframe:resinSamplesFrame
 style	shiny_app/R/module_annuals_biomass.R	/^            style   = "color: #fff;",$/;"	v	function:annuals_biomassUI
+style	shiny_app/R/module_annuals_biomass_new.R	/^            style   = "color: white"$/;"	n	list:module_annual_biomass_new.anonFunc78cc646d0100.footer
 style	shiny_app/R/module_chn_upload.R	/^            style = "background: #C9DFEC",$/;"	v	function:upload_chnUI
 style	shiny_app/R/module_chn_upload.R	/^          style = "text-align: left; background-color: LightGray; color: black;"$/;"	v	function:upload_chn.anonFunc872120020100
 style	shiny_app/R/module_cover_composition.R	/^        style = "padding-left: 30px; padding-right: 10px;",$/;"	v	function:cover_compositionUI
@@ -710,19 +744,22 @@ survey_months	shiny_app/R/helper_query_chn_dates.R	/^    survey_months <- c(4, 5
 tabID	shiny_app/server.R	/^  tabID <- shiny::reactive({ input$tabs })$/;"	v	function:server
 targets	shiny_app/R/module_annuals_biomass.R	/^          targets   = c(0),$/;"	n	list:annuals_biomass.anonFunc599bcac40100.options.columnDefs.anonList599bcac40307	constructor:c
 targets	shiny_app/R/module_annuals_biomass.R	/^          targets   = c(0),$/;"	n	list:annuals_biomass.anonFunc599bcac40100.options.columnDefs.anonList599bcac40407	constructor:c
+targets	shiny_app/R/module_annuals_biomass.R	/^          targets   = c(10),$/;"	n	list:annuals_biomass.anonFunc599bcac40100.options.columnDefs.anonList599bcac40507	constructor:c
 targets	shiny_app/R/module_chn_upload.R	/^          targets = c(6, 8, 13, 14),$/;"	n	list:columnDefs.anonList872120020407	constructor:c
 targets	shiny_app/R/module_chn_upload.R	/^          targets = c(7, 8, 13, 14),$/;"	n	list:upload_chn.anonFunc872120020100.options.columnDefs.anonList872120020307	constructor:c
 targets	shiny_app/R/module_cover_composition.R	/^          targets   = c(0),$/;"	n	list:cover_composition.anonFunc0c28c1970100.options.columnDefs.anonList0c28c1970307	constructor:c
 targets	shiny_app/R/module_cover_composition.R	/^          targets   = c(0),$/;"	n	list:cover_composition.anonFunc0c28c1970100.options.columnDefs.anonList0c28c1970407	constructor:c
 targets	shiny_app/R/module_cover_events.R	/^          targets   = c(0),$/;"	n	list:cover_events.anonFunc8e21c4f80100.options.columnDefs.anonList8e21c4f80307	constructor:c
 targets	shiny_app/R/module_cover_events.R	/^          targets   = c(0),$/;"	n	list:cover_events.anonFunc8e21c4f80100.options.columnDefs.anonList8e21c4f80407	constructor:c
+targets	shiny_app/R/module_cover_events.R	/^          targets   = c(9),$/;"	n	list:cover_events.anonFunc8e21c4f80100.options.columnDefs.anonList8e21c4f80507	constructor:c
 targets	shiny_app/R/module_resin_upload.R	/^          targets = c(16),$/;"	n	list:upload_resin.anonFunc6638aa2a0100.options.columnDefs.anonList6638aa2a0407	constructor:c
 temp_raw	shiny_app/R/helper_prepare_raw.R	/^  temp_raw <- raw_reactive$/;"	v	function:prepare_raw
+this_ab_id	shiny_app/R/module_annuals_biomass_new.R	/^        this_ab_id      <- NULL$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 this_annual_biomass	shiny_app/R/module_annuals_biomass.R	/^      this_annual_biomass <- annuals_biomass_reactive() |>$/;"	v	function:annuals_biomass.anonFunc599bcac40100
+this_annuals_biomass_id	shiny_app/R/helper_insert_annual_biomass.R	/^  this_annuals_biomass_id <- as.integer(ab_id)$/;"	v	function:insert_new_or_update_ab
 this_annuals_biomass_to_edit	shiny_app/R/module_annuals_biomass.R	/^    this_annuals_biomass_to_edit <- shiny::eventReactive(input$annuals_biomass_to_edit, {$/;"	v	function:annuals_biomass.anonFunc599bcac40100
 this_cc_id	shiny_app/R/module_cover_composition_new.R	/^        this_cc_id      <- NULL$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 this_ce_id	shiny_app/R/module_cover_event_new.R	/^        this_ce_id   <- NULL$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
-this_ce_to_populate	shiny_app/R/module_annuals_biomass.R	/^    this_ce_to_populate <- shiny::eventReactive(input$cover_event_to_populate, {$/;"	v	function:annuals_biomass.anonFunc599bcac40100
 this_ce_to_populate	shiny_app/R/module_cover_events.R	/^    this_ce_to_populate <- shiny::eventReactive(input$cover_event_to_populate, {$/;"	v	function:cover_events.anonFunc8e21c4f80100
 this_ce_type	shiny_app/R/module_cover_event_new.R	/^        this_ce_type <- "insert"$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 this_composition	shiny_app/R/module_cover_composition.R	/^      this_composition <- query_cover_composition(cover_id = input$cover_composition_to_edit)$/;"	v	function:cover_composition.anonFunc0c28c1970100
@@ -734,9 +771,11 @@ this_cover_event_id	shiny_app/R/helper_insert_cover_event.R	/^  this_cover_event
 this_cover_event_to_edit	shiny_app/R/module_cover_events.R	/^    this_cover_event_to_edit <- shiny::eventReactive(input$cover_event_to_edit, {$/;"	v	function:cover_events.anonFunc8e21c4f80100
 this_cover_type_id	shiny_app/R/helper_insert_cover_composition.R	/^  this_cover_type_id <- cover_types[cover_types$cover_type == cover_type_description, ][["cover_/;"	v	function:insert_new_or_update_cc
 this_pool	shiny_app/global.R	/^this_pool <- pool::dbPool($/;"	g
+this_query_type	shiny_app/R/module_annuals_biomass_new.R	/^        this_query_type <- "insert"$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 this_query_type	shiny_app/R/module_cover_composition_new.R	/^        this_query_type <- "insert"$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 tissue_type	shiny_app/R/helper_chn_prep.R	/^    tissue_type = dplyr::case_when($/;"	v	function:prepare_chn_data
 tissue_type	shiny_app/R/module_chn_upload.R	/^        tissue_type = NA_character_,$/;"	v	function:upload_chn.anonFunc872120020100
+title	shiny_app/R/module_annuals_biomass_new.R	/^        title  = modal_title,$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 title	shiny_app/R/module_cover_composition_new.R	/^        title  = modal_title,$/;"	v	function:module_cover_composition_new.anonFunc03ce8cc00100
 title	shiny_app/R/module_cover_event_new.R	/^        title  = modal_title,$/;"	v	function:module_cover_event_new.anonFunc286ea14e0100
 title	shiny_app/ui.R	/^      title = "annuals biomass",$/;"	g
@@ -766,7 +805,6 @@ ui	shiny_app/R/helper_sql_execution.R	/^      ui          = paste("there was an 
 ui	shiny_app/R/helper_upload_chemistry.R	/^      ui          = "successfully uploaded",$/;"	v	function:upload_chemistry
 ui	shiny_app/R/helper_upload_chemistry.R	/^      ui          = paste("there is a warning:  ", warn),$/;"	v	function:upload_chemistry.anonFunc452e579b0200
 ui	shiny_app/R/helper_upload_chemistry.R	/^      ui          = paste("there was an error:  ", err),$/;"	v	function:upload_chemistry.anonFunc452e579b0200.error
-ui	shiny_app/R/module_annuals_biomass.R	/^        ui       = tags$div($/;"	v	function:annuals_biomass.anonFunc599bcac40100
 ui	shiny_app/R/module_chn_upload.R	/^          ui          = "file must be of type csv",$/;"	v	function:upload_chn.anonFunc872120020100
 ui	shiny_app/R/module_cover_events.R	/^        ui       = tags$div($/;"	v	function:cover_events.anonFunc8e21c4f80100
 ui	shiny_app/R/module_resin_upload.R	/^          ui          = "file must be of type Excel or csv",$/;"	v	function:upload_resin.anonFunc6638aa2a0100
@@ -784,6 +822,7 @@ value	archive/app.R	/^        value = input[[paste0(id, i)]]$/;"	v	function:serv
 value	shiny_app/R/helper_prepare_raw.R	/^    value     = temp_raw,$/;"	v	function:prepare_raw
 value	shiny_app/R/helper_shiny_input.R	/^        value = input[[paste0(id, i)]]$/;"	v	function:shinyValue.anonFuncdebda2d90100
 value	shiny_app/R/module_annuals_biomass.R	/^    edit_counter <- shiny::reactiveVal(value = 0)$/;"	v	function:annuals_biomass.anonFunc599bcac40100
+value	shiny_app/R/module_annuals_biomass_new.R	/^              value   = ifelse(is.null(hold), as.character(Sys.Date()), as.character(hold$date))/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 value	shiny_app/R/module_chn_upload.R	/^              value   = as.integer(lubridate::year(Sys.Date()) - 1),$/;"	v	function:upload_chnUI
 value	shiny_app/R/module_chn_upload.R	/^          value = input[[paste0(id, i)]]$/;"	v	function:upload_chn.anonFunc872120020100.shinyValue.anonFunc872120020200
 value	shiny_app/R/module_cover_composition.R	/^    add_composition_counter <- shiny::reactiveVal(value = 0)$/;"	v	function:cover_composition.anonFunc0c28c1970100
@@ -793,10 +832,10 @@ value	shiny_app/R/module_cover_events.R	/^    edit_counter <- shiny::reactiveVal
 value	shiny_app/R/module_fertilizer.R	/^              value   = 1.715,$/;"	v	function:fertilizerUI
 value	shiny_app/R/module_resin_upload.R	/^              value       = NULL,$/;"	v	function:upload_resinUI
 value	shiny_app/R/module_resin_upload.R	/^          value = input[[paste0(id, i)]]$/;"	v	function:upload_resin.anonFunc6638aa2a0100.shinyValue.anonFunc6638aa2a0200
-where	shiny_app/R/module_annuals_biomass.R	/^        where    = "beforeBegin",$/;"	v	function:annuals_biomass.anonFunc599bcac40100
-where	shiny_app/R/module_cover_events.R	/^        where    = "beforeBegin",$/;"	v	function:cover_events.anonFunc8e21c4f80100
+where	shiny_app/R/module_cover_events.R	/^        where    = "afterBegin",$/;"	v	function:cover_events.anonFunc8e21c4f80100
 width	shiny_app/R/module_annuals_biomass.R	/^          width     = "100px"$/;"	n	list:annuals_biomass.anonFunc599bcac40100.options.columnDefs.anonList599bcac40307
 width	shiny_app/R/module_annuals_biomass.R	/^          width = 10,$/;"	v	function:annuals_biomassUI
+width	shiny_app/R/module_annuals_biomass_new.R	/^            width  = 5,$/;"	v	function:module_annual_biomass_new.anonFunc78cc646d0100
 width	shiny_app/R/module_chemistry_data.R	/^          width = 12$/;"	v	function:chemistry_dataUI
 width	shiny_app/R/module_chn_upload.R	/^          width = 12,$/;"	v	function:upload_chnUI
 width	shiny_app/R/module_cover_composition.R	/^          width     = "100px"$/;"	n	list:cover_composition.anonFunc0c28c1970100.options.columnDefs.anonList0c28c1970307
