@@ -254,8 +254,6 @@ cover_events <- function(id) {
       id            <- populate_counter()
       ce_element_id <- paste0("ce_element_", id)
 
-      message("from populate: ", ce_element_id)
-
       shiny::insertUI(
         selector = "#add_cover_compositions",
         where    = "afterBegin",
