@@ -49,4 +49,4 @@ source("R/helper_sql_execution.R") # ensure that this is loaded first
 # selectors --------------------------------------------------------------------
 
 # initials of annuals survey crew
-annuals_comp_surveyors <- c("Jaysen Brunner", "Kristen Countryman")
+annuals_comp_surveyors <- c("Chad Hauck", "Carina Rodriguez")
